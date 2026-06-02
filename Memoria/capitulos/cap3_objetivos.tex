@@ -1,0 +1,66 @@
+% ── Capítulo 3: Objetivos y metodología ──────────────────────────────────────
+\chapter{Objetivos concretos y metodología de trabajo}
+\label{cap:objetivos}
+
+El presente capítulo expone el objetivo general del trabajo, los objetivos específicos que lo articulan y la metodología que guiará su ejecución. Los tres componentes se han formulado teniendo en cuenta la naturaleza del problema identificado, el tipo de trabajo correspondiente a una comparativa de soluciones y el horizonte temporal disponible para su desarrollo.
+
+\section{Objetivo general}
+\label{sec:objetivo_general}
+
+\begin{quote}
+Comparar el desempeño de distintas familias de modelos de pronóstico ---que comprenden métodos estadísticos clásicos, algoritmos de aprendizaje automático y arquitecturas de aprendizaje profundo seleccionadas---, aplicados a series temporales financieras mensuales en contextos de FP\&A, mediante un protocolo de backtesting temporal con ventanas de validación móviles y un conjunto de métricas de error estadístico y de impacto económico, con el propósito de proponer un \textit{framework} cuantitativo de selección de modelos que oriente la práctica organizacional en entornos de planificación financiera, en el tiempo requerido por el programa académico.
+\end{quote}
+
+Este objetivo satisface los criterios SMART enunciados por \textcite{Armstrong2001}: es \textbf{específico}, al delimitar con precisión qué se compara, en qué contexto y bajo qué condiciones metodológicas; es \textbf{medible}, dado que el éxito se evalúa a través de métricas cuantitativas de precisión estadística e impacto económico; es \textbf{alcanzable}, pues el alcance de modelos y el diseño del \textit{pipeline} se ajustan a los recursos y al tiempo disponibles; es \textbf{relevante}, por cuanto responde a una necesidad documentada en la práctica de FP\&A \parencite{Armstrong2001, Hyndman2021}; y está \textbf{acotado temporalmente}, dentro del marco de entrega establecido por el programa.
+
+\section{Objetivos específicos}
+\label{sec:objetivos_especificos}
+
+Los siguientes objetivos específicos desglosan el objetivo general en tareas delimitadas y verificables, organizadas según la secuencia de ejecución del trabajo:
+
+\begin{itemize}
+  \item \textbf{OE1.} Revisar y sintetizar el estado del arte sobre métodos de pronóstico aplicados a series temporales financieras, mediante una búsqueda sistemática en bases de datos académicas indexadas. La revisión identificará las arquitecturas más representativas, sus fundamentos teóricos, sus limitaciones documentadas y las métricas de evaluación más pertinentes para entornos de FP\&A.
+
+  \item \textbf{OE2.} Diseñar e implementar un \textit{pipeline} de pronóstico modular, reproducible y documentado en Python, que integre al menos cuatro familias de modelos: baseline estadístico (Seasonal Naïve), métodos estadísticos clásicos (ETS, Holt-Winters, SARIMA), algoritmos de aprendizaje automático basados en \textit{gradient boosting} (LightGBM) y arquitecturas de aprendizaje profundo (MLP, N-BEATS).
+
+  \item \textbf{OE3.} Aplicar un protocolo de backtesting temporal con ventanas de validación móviles (\textit{walk-forward}) que garantice la separación estricta entre los conjuntos de entrenamiento y evaluación en cada iteración, preservando el orden causal de las observaciones y eliminando el riesgo de fuga de información entre particiones \parencite{Bergmeir2012}.
+
+  \item \textbf{OE4.} Evaluar y comparar el desempeño de los modelos mediante métricas de error estadístico (MAE, RMSE, MAPE, sMAPE, MASE) y métricas de impacto económico (WAPE y contribución al error absoluto ponderado por decil de volumen de serie), analizando el desempeño tanto a nivel global como desagregado.
+
+  \item \textbf{OE5.} Establecer un \textit{framework} cuantitativo de selección de modelos, fundamentado en los umbrales de error estadístico e impacto económico derivados de los resultados del backtesting, que proporcione criterios objetivos y reproducibles para la elección del modelo más adecuado según el tipo de serie financiera y el contexto organizacional de FP\&A.
+\end{itemize}
+
+\section{Metodología del trabajo}
+\label{sec:metodologia}
+
+Para alcanzar los objetivos definidos, el trabajo se articula en seis fases con solapamiento controlado entre ellas. La distribución temporal se ajusta al calendario académico del programa y a los compromisos de seguimiento establecidos con la directora del trabajo.
+
+\subsection{Fase 1. Revisión sistemática de la literatura}
+\label{subsec:fase1}
+
+Se lleva a cabo una revisión bibliográfica estructurada en bases de datos académicas indexadas (Scopus, Web of Science, IEEE Xplore, Google Scholar). Los criterios de inclusión comprenden trabajos que aborden métodos de pronóstico de series temporales en contextos financieros o empresariales, esquemas de backtesting temporal y métricas de evaluación orientadas al impacto económico. Los resultados se sintetizan en la matriz comparativa de modelos, métricas y contextos de aplicación incluida en el Capítulo~\ref{cap:contexto}, que sirve como base para la selección definitiva de las arquitecturas a evaluar \parencite{Petropoulos2022}.
+
+\subsection{Fase 2. Adquisición y preparación de datos}
+\label{subsec:fase2}
+
+Se recopila el conjunto de series temporales financieras mensuales correspondiente al experimento. Esta fase comprende la descarga del conjunto M4 Financial Monthly \parencite{Makridakis2020M4}, la aplicación del umbral de filtrado ($\geq 72$ meses), la normalización del formato y el análisis exploratorio descriptivo. Dicho análisis incluye la caracterización estadística de las longitudes de serie y la verificación del cumplimiento del umbral mínimo. Dado que el conjunto M4 no incluye etiquetas por tipo de cuenta contable, el análisis desagregado se realiza por decil de volumen absoluto de la serie, como proxy del impacto financiero relativo. Esta decisión queda documentada como limitación del trabajo.
+
+\subsection{Fase 3. Diseño del protocolo de backtesting}
+\label{subsec:fase3}
+
+Se diseña e implementa el motor de backtesting temporal \textit{walk-forward} con \textit{expanding window}, definiendo los parámetros clave: tamaño mínimo de la ventana de entrenamiento (54 meses), horizonte de pronóstico (18 meses) y desplazamiento entre iteraciones (12 meses). La implementación garantiza que, en ninguna iteración, los datos del período de evaluación sean accesibles durante el ajuste del modelo. El módulo incluye una función de verificación automática de ausencia de fuga de datos que comprueba la disyunción de los índices de entrenamiento y evaluación en cada \textit{fold} \parencite{Bergmeir2012}.
+
+\subsection{Fase 4. Implementación y ajuste de modelos}
+\label{subsec:fase4}
+
+Cada familia de modelos se implementa de forma modular e independiente dentro del \textit{pipeline}, facilitando su sustitución o extensión sin afectar al resto del sistema. Los modelos estadísticos (ETS y SARIMA) se ajustan mediante selección automática de componentes por criterio de información (AICc), utilizando \texttt{AutoETS} y \texttt{AutoARIMA} de la librería \texttt{statsforecast} \parencite{Hyndman2021}. Holt-Winters se implementa vía \texttt{statsmodels}, con selección entre variante aditiva y multiplicativa basada en los datos. LightGBM utiliza un paradigma de \textit{global forecasting} tabular con rezagos como \textit{features} y predicción recursiva. MLP y N-BEATS se implementan en PyTorch bajo \textit{direct forecasting} multi-horizonte. En todos los casos, el ajuste de hiperparámetros se realiza exclusivamente sobre datos de entrenamiento, respetando el principio de no contaminación de la evaluación.
+
+\subsection{Fase 5. Análisis de resultados y construcción del \textit{framework}}
+\label{subsec:fase5}
+
+Los resultados del backtesting se consolidan y analizan según las métricas definidas en el OE4. El análisis comprende cuatro dimensiones: comparativa global de modelos por familia, desagregación por deciles de volumen, evaluación de la estabilidad temporal del desempeño a lo largo de las iteraciones walk-forward (coeficiente de variación del sMAPE entre \textit{folds}), y cuantificación del impacto económico derivado de adoptar el modelo de mayor precisión frente al de referencia. Con base en estos resultados se elabora el \textit{framework} de selección descrito en el OE5.
+
+\subsection{Fase 6. Redacción, revisión y entrega}
+\label{subsec:fase6}
+
+La documentación técnica y la memoria del TFE se redactan de forma continua a lo largo del proyecto, con entregas parciales a la directora en los hitos principales de cada fase. La versión final se somete a revisión de coherencia, verificación bibliográfica y corrección ortotipográfica antes de su entrega formal en la plataforma de la universidad.

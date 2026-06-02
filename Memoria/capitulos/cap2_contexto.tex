@@ -1,0 +1,130 @@
+% ── Capítulo 2: Contexto y estado del arte ───────────────────────────────────
+\chapter{Contexto y estado del arte}
+\label{cap:contexto}
+
+El presente capítulo sitúa el problema de investigación en su contexto operativo y teórico. En una primera parte se describe el entorno de la Planificación y Análisis Financiero (FP\&A) como función estratégica, las características que hacen especialmente difícil modelizar sus series temporales y la brecha metodológica que persiste en la práctica. En una segunda parte se revisa la evolución de los enfoques de pronóstico documentada en la literatura académica, desde los métodos estadísticos clásicos hasta los modelos fundacionales de última generación, con especial atención a las conclusiones que los propios autores extraen sobre las condiciones en que cada familia resulta más o menos adecuada. El capítulo cierra con una síntesis de las brechas identificadas que motivan directamente la contribución de este trabajo.
+
+\section{Contexto del problema}
+\label{sec:contexto_problema}
+
+La Planificación y Análisis Financiero (FP\&A) es, en esencia, la función que traduce los objetivos estratégicos de una organización en planes financieros cuantificables y proporciona los análisis que orientan las decisiones ejecutivas \parencite{Armstrong2001}. En la práctica, esto se materializa en ciclos recurrentes de estimación, seguimiento y revisión: el cierre contable mensual, momento en que se consolidan resultados históricos, se generan estimaciones de cuentas pendientes y se proyectan ingresos y gastos para el cierre fiscal, constituye quizá el ejemplo más representativo de esta función. Lo que hace que esta actividad sea especialmente exigente desde el punto de vista técnico es que sus consecuencias son inmediatas y directamente medibles en términos financieros. Una estimación baja de los ingresos puede obligar a la organización a recurrir a costosas líneas de crédito para cubrir obligaciones a corto plazo, mientras que una estimación alta inmoviliza liquidez en reservas improductivas \parencite{Petropoulos2022}. El error de pronóstico no es solo un indicador de calidad técnica: tiene un coste real que se manifiesta directamente en la gestión del capital circulante.
+
+Las series financieras corporativas presentan un conjunto de propiedades que complican significativamente su modelización predictiva. La Tabla~\ref{tab:caractserier} sintetiza estas características, sus implicaciones para el modelado y las referencias que las documentan.
+
+\begin{table}[H]
+\caption{\textbf{Tabla 3.} \textit{Características de las series temporales financieras y sus implicaciones para el modelado.}}
+\label{tab:caractserier}
+\vspace{4pt}
+\begin{tabular}{>{\raggedright\arraybackslash}p{3cm} >{\raggedright\arraybackslash}p{5cm} >{\raggedright\arraybackslash}p{6cm}}
+\toprule
+\textbf{Característica} & \textbf{Descripción} & \textbf{Implicación para el modelado} \\
+\midrule
+Estacionalidad heterogénea & Distintas cuentas contables exhiben patrones estacionales propios: ingresos con picos trimestrales, gastos con periodicidad diferente & Un único modelo difícilmente funciona de forma homogénea en todas las líneas contables \\
+No-estacionariedad y cambios estructurales & Adquisiciones, shocks macroeconómicos o cambios regulatorios generan rupturas abruptas en las dinámicas históricas & Los parámetros estimados antes del cambio pueden resultar inválidos \\
+Dependencias no lineales & Saturación del crecimiento, economías de escala o elasticidades variables generan relaciones no lineales & Los métodos paramétricos estándar no capturan estas relaciones \parencite{Hyndman2021} \\
+Ruido y valores atípicos & Errores de registro, ajustes contables retroactivos y eventos extraordinarios coexisten en la misma serie & Los modelos deben mostrar robustez sin perder sensibilidad a cambios reales \\
+Series cortas & En ciclos mensuales, el historial raramente supera 4--5 años, dejando el total de observaciones por debajo de los umbrales críticos para ML & Los algoritmos complejos pueden no alcanzar su potencial \parencite{Cerqueira2022} \\
+\bottomrule
+\end{tabular}
+\vspace{4pt}
+
+\small\textit{Fuente: elaboración propia a partir de \textcite{Hyndman2021}, \textcite{Cerqueira2020} y \textcite{Petropoulos2022}.}
+\end{table}
+
+Frente a toda esta complejidad, la práctica habitual en FP\&A resulta llamativamente conservadora. Como documentó \textcite{Armstrong2001}, la elección de los métodos de pronóstico suele basarse más en la costumbre o en la aparente simplicidad del método que en una verdadera evaluación empírica de su desempeño. Es frecuente encontrar organizaciones que siguen utilizando promedios móviles que ignoran las tendencias subyacentes, proyecciones lineales que asumen escenarios constantes, o simplemente el juicio del analista como recurso principal cuando los modelos cuantitativos no ofrecen una respuesta satisfactoria.
+
+Esta desconexión tiene un precio que pocas veces se cuantifica con rigor. Cuando no existe un protocolo de backtesting adecuado, resulta prácticamente imposible medir cuál es el coste real de no adoptar modelos más sofisticados. Por su parte, \textcite{Bergmeir2012} demostraron que aplicar una validación cruzada estándar a series temporales suele arrojar estimaciones de desempeño entre un 20\,\% y un 30\,\% más favorables que los resultados reales en producción, lo que introduce una falsa confianza que refuerza el \textit{statu quo} metodológico. Esta brecha no es únicamente un problema de acceso a tecnología: es, en gran medida, un problema de ausencia de marcos de evaluación que hagan visible el coste de la imprecisión.
+
+\section{Estado del arte}
+\label{sec:estado_arte}
+
+La revisión que sigue no pretende ser un catálogo exhaustivo de técnicas, sino una lectura crítica de lo que la literatura académica ha concluido sobre cuándo, cómo y bajo qué condiciones cada familia de modelos aporta valor real en contextos de predicción de series temporales. El recorrido sigue un eje de complejidad creciente, desde los métodos estadísticos clásicos hasta los modelos fundacionales preentrenados, con especial atención a los hallazgos de los grandes benchmarks comparativos. La Tabla~\ref{tab:familias_modelos} ofrece una visión consolidada de estas familias.
+
+\begin{table}[H]
+\caption{\textbf{Tabla 4.} \textit{Familias de modelos de pronóstico: características, ventajas y limitaciones según la literatura.}}
+\label{tab:familias_modelos}
+\vspace{4pt}
+\begin{tabular}{>{\raggedright\arraybackslash}p{2.8cm} >{\raggedright\arraybackslash}p{2.8cm} >{\raggedright\arraybackslash}p{3.8cm} >{\raggedright\arraybackslash}p{4.2cm}}
+\toprule
+\textbf{Familia} & \textbf{Modelos representativos} & \textbf{Ventajas} & \textbf{Limitaciones} \\
+\midrule
+Estadístico clásico & ETS, Holt-Winters, SARIMA & Parsimonia paramétrica; robusto con series cortas; frecuentemente supera a modelos complejos en benchmarks con patrones regulares \parencite{Makridakis2022} & Asume linealidad; no captura cambios estructurales ni dependencias no lineales \parencite{Hyndman2021} \\
+Machine Learning & LightGBM, XGBoost & Captura relaciones no lineales; escalable a múltiples series con \textit{feature engineering} adecuado \parencite{Januschowski2020} & Rendimiento inferior a métodos clásicos con menos de $\approx$500 observaciones; depende críticamente del \textit{feature engineering} \parencite{Cerqueira2022} \\
+Deep Learning tabular & MLP & Modelado de dinámicas complejas sin \textit{feature engineering} manual; \textit{direct forecasting} multi-horizonte & Costoso computacionalmente; requiere grandes volúmenes de datos \parencite{LimZohren2021} \\
+Deep Learning temporal & N-BEATS & Descomposición explícita tendencia/estacionalidad; interpretabilidad estructural; \textit{direct forecasting} & Mayor complejidad de implementación; requiere volumen de datos suficiente \parencite{Oreshkin2020} \\
+Modelo fundacional & Chronos, FinCast & \textit{Transfer learning} desde corpus masivos; capacidad \textit{zero-shot} \parencite{Ansari2024} & Los datos financieros corporativos requieren \textit{fine-tuning} específico; sensibles a cambios de régimen \parencite{Rahimikia2025} \\
+\bottomrule
+\end{tabular}
+\vspace{4pt}
+
+\small\textit{Fuente: elaboración propia a partir de \textcite{Hyndman2021}, \textcite{Januschowski2020}, \textcite{LimZohren2021}, \textcite{Ansari2024} y \textcite{Rahimikia2025}.}
+\end{table}
+
+Los métodos de suavizamiento exponencial son el punto de partida más natural para entender cómo se extrae señal de una serie temporal. Su lógica es conceptualmente sencilla: asignar pesos decrecientes a las observaciones pasadas, de modo que los datos más recientes influyan más sobre el pronóstico que los más antiguos. A partir de esta idea básica, el método de Holt incorpora la tendencia lineal y Holt-Winters añade la estacionalidad, conformando una familia que logra representar fenómenos temporales complejos con muy pocos parámetros. Esta parsimonia es, al mismo tiempo, su mayor virtud y su principal limitación: facilita la calibración y la interpretación, pero impone una estructura que no puede capturar las interacciones más complejas de los datos financieros \parencite{Hyndman2021}. Los modelos ARIMA, sistematizados por Box y Jenkins, combinan una componente autorregresiva, un proceso de integración para estabilizar la media y una componente de media móvil; su extensión estacional SARIMA incorpora ciclos recurrentes.
+
+Un hallazgo que la literatura ha consolidado con fuerza en los últimos años es que la simplicidad de estos métodos no equivale a inferioridad en todos los contextos. \textcite{Makridakis2022}, en el análisis de la competición M5, encontraron que los métodos estadísticos clásicos superaron a muchos algoritmos de \textit{machine learning} en series cortas o con patrones regulares. Este resultado obliga a revisar la narrativa simplista de que ``más complejo siempre es mejor''.
+
+En el terreno del \textit{machine learning}, los algoritmos de \textit{gradient boosting} ---LightGBM y XGBoost--- demostraron ser capaces de competir con los métodos estadísticos tradicionales en competiciones de gran escala \parencite{Januschowski2020}. El secreto para lograrlo reside en un trabajo previo cuidadoso de \textit{feature engineering}: diseñar rezagos de la variable objetivo, ventanas estadísticas móviles e indicadores de calendario. Sin embargo, \textcite{Cerqueira2022} documentaron con claridad que el desempeño de estos algoritmos depende de manera crítica de la cantidad de datos disponibles: en series con menos de aproximadamente 500 observaciones, los métodos estadísticos clásicos los superan sistemáticamente.
+
+El salto hacia el \textit{deep learning} estuvo protagonizado inicialmente por las arquitecturas recurrentes ---LSTM y GRU---, que superaron las limitaciones de las redes tradicionales mediante sistemas de compuertas capaces de retener información relevante a lo largo de secuencias largas \parencite{LimZohren2021}. Entre las propuestas de \textit{deep learning} nativo para series temporales, N-BEATS \parencite{Oreshkin2020} merece atención especial: su arquitectura de bloques residuales descompone explícitamente la señal en componentes de tendencia y estacionalidad, lo que aporta interpretabilidad estructural alineada con las necesidades de FP\&A.
+
+La frontera más reciente del campo corresponde a los modelos fundacionales, que trasladan al dominio de las series temporales la misma intuición que transformó el procesamiento del lenguaje natural: preentrenar una arquitectura de gran escala sobre un corpus masivo y diverso. Chronos \parencite{Ansari2024} es un ejemplo paradigmático. Sin embargo, \textcite{Rahimikia2025} concluyen en su evaluación comprehensiva que los modelos fundacionales genéricos tienen rendimiento pobre en modo \textit{zero-shot} con datos financieros, y que solo los modelos preentrenados específicamente en datos financieros ---como FinCast \parencite{Zhu2025FinCast}--- logran mejoras sustanciales. Esta limitación es coherente con las propiedades de las series financieras descritas en la Tabla~\ref{tab:caractserier}: la no-estacionariedad, la alta dimensionalidad y los cambios de régimen frecuentes no están bien representados en los corpus de preentrenamiento genéricos.
+
+La dimensión metodológica de la evaluación merece un apartado propio, porque su correcta aplicación condiciona la validez de cualquier conclusión sobre qué modelo es preferible. La Tabla~\ref{tab:metricas} presenta la taxonomía de métricas adoptadas en este trabajo.
+
+\begin{table}[H]
+\caption{\textbf{Tabla 5.} \textit{Métricas de evaluación de pronóstico: categoría, problema que abordan y limitaciones de uso.}}
+\label{tab:metricas}
+\vspace{4pt}
+\begin{tabular}{>{\raggedright\arraybackslash}p{2.5cm} >{\raggedright\arraybackslash}p{2cm} >{\raggedright\arraybackslash}p{4cm} >{\raggedright\arraybackslash}p{5cm}}
+\toprule
+\textbf{Métrica} & \textbf{Categoría} & \textbf{Problema que aborda} & \textbf{Limitación o consideración} \\
+\midrule
+MAE / RMSE & Dependiente de escala & Intuitividad; unidades originales & Impide comparar series de distinta magnitud; RMSE penaliza errores grandes \parencite{Petropoulos2022} \\
+MAPE & Porcentual & Comprensión intuitiva & Asimétrico; indefinido ante valores reales cercanos a cero \parencite{Petropoulos2022} \\
+sMAPE & Porcentual simétrica & Corrige la asimetría del MAPE; acotada en $[0, 200]$ & Sigue siendo problemática ante valores cercanos a cero \parencite{Hyndman2021} \\
+MASE & Error escalado & Comparación robusta entre series; referencia contra naïve estacional & Requiere definir correctamente el modelo de referencia \parencite{Hyndman2021} \\
+WAPE & Impacto económico & Pondera errores según volumen financiero & Puede enmascarar errores en cuentas pequeñas si el volumen está dominado por pocas líneas \parencite{Makridakis2022} \\
+Contribución al error & Impacto económico desagregado & Desglosa el error por grupo de volumen; identifica dónde el impacto financiero es mayor & Requiere agrupación estable de series \parencite{Makridakis2022} \\
+\bottomrule
+\end{tabular}
+\vspace{4pt}
+
+\small\textit{Fuente: elaboración propia a partir de \textcite{Petropoulos2022}, \textcite{Hyndman2021} y \textcite{Makridakis2022}.}
+\end{table}
+
+Más allá de esta taxonomía estadística, \textcite{Makridakis2025M6} señalan una desconexión crítica: minimizar cualquiera de estas métricas matemáticas no garantiza maximizar el valor para el negocio. Dos pronósticos pueden tener exactamente el mismo sMAPE, pero su impacto económico puede ser radicalmente distinto si los errores de uno se concentran en las cuentas de mayor volumen. Esta realidad hace necesario incorporar métricas orientadas al valor ---como el WAPE--- que permitan priorizar los esfuerzos de mejora donde el impacto financiero es efectivamente mayor.
+
+La dimensión metodológica de la evaluación merece un apartado propio porque su correcta aplicación condiciona la validez de cualquier conclusión. \textcite{Bergmeir2012} demostraron empíricamente que aplicar la validación cruzada estándar a series temporales produce estimaciones de desempeño artificialmente optimistas ---entre un 20\,\% y un 30\,\% por encima de los resultados reales en producción--- como consecuencia de la contaminación temporal. La Tabla~\ref{tab:validacion} resume los problemas de los principales esquemas de validación.
+
+\begin{table}[H]
+\caption{\textbf{Tabla 6.} \textit{Métodos de validación temporal: limitaciones y solución que aporta el protocolo walk-forward.}}
+\label{tab:validacion}
+\vspace{4pt}
+\begin{tabular}{>{\raggedright\arraybackslash}p{3.5cm} >{\raggedright\arraybackslash}p{4.5cm} >{\raggedright\arraybackslash}p{5.5cm}}
+\toprule
+\textbf{Método} & \textbf{Problema que presenta} & \textbf{Por qué walk-forward lo resuelve} \\
+\midrule
+K-Fold estándar & Contaminación temporal: el modelo entrena con datos del futuro para predecir el pasado & Walk-forward garantiza que cada pronóstico usa únicamente la información disponible en ese momento \parencite{Bergmeir2012} \\
+Hold-out simple & Evalúa el modelo en un único período sin considerar la variabilidad del desempeño en el tiempo & Las ventanas móviles generan múltiples iteraciones de evaluación; permiten analizar la estabilidad temporal \parencite{Bergmeir2012} \\
+Validación cruzada sin control temporal & Estimaciones 20--30\,\% más optimistas que los resultados reales \parencite{Bergmeir2012} & Walk-forward elimina este sesgo; las estimaciones de error son representativas del desempeño esperado en producción \\
+Expanding window & Acumula todo el historial; puede otorgar excesivo peso a patrones históricos lejanos & Configuración predeterminada en este trabajo dado que las series no presentan cambios de régimen conocidos \parencite{Hyndman2021} \\
+\bottomrule
+\end{tabular}
+\vspace{4pt}
+
+\small\textit{Fuente: elaboración propia a partir de \textcite{Bergmeir2012} y \textcite{Hyndman2021}.}
+\end{table}
+
+\section{Conclusiones del capítulo}
+\label{sec:conclusiones_cap2}
+
+El recorrido por el contexto operativo y la literatura académica permite extraer tres conclusiones que orientan directamente el diseño del presente trabajo.
+
+La primera es que la complejidad del modelo debe ser proporcional a la de los datos. No existe una arquitectura universalmente superior: los métodos estadísticos clásicos superan frecuentemente al \textit{machine learning} en series cortas con patrones regulares \parencite{Makridakis2022, Cerqueira2022}, mientras que las arquitecturas de aprendizaje profundo pueden demostrar ventajas en contextos de alta heterogeneidad. Esta contingencia implica que la selección del modelo no puede basarse en la reputación del algoritmo, sino en una evaluación empírica sobre las características concretas de la serie.
+
+La segunda conclusión es que la validación temporal estricta es innegociable. \textcite{Bergmeir2012} lo demostraron empíricamente: cualquier esquema que no respete la causalidad temporal produce estimaciones artificialmente optimistas que se traducen en decisiones de selección de modelos que luego fracasan en producción.
+
+La tercera conclusión es que las métricas deben hablar el idioma del negocio. La brecha entre optimizar un error estadístico y crear valor real para la organización está bien documentada \parencite{Armstrong2001, Makridakis2025M6}, pero los marcos de evaluación que la cierran explícitamente en el contexto de FP\&A son escasos. Es en este punto donde el presente trabajo encuentra su espacio de contribución más específico.
+
+De esta revisión se desprenden además tres brechas que motivan la investigación: (1) la escasez de estudios centrados en series financieras corporativas, donde los benchmarks disponibles se construyen principalmente sobre datos de retail, energía o tráfico; (2) la ausencia de marcos de evaluación orientados al valor en este dominio; y (3) la falta de criterios objetivos para seleccionar modelos, dado que quienes toman decisiones en FP\&A carecen de guías cuantitativas para determinar cuándo la inversión en mayor sofisticación se justifica. Son precisamente estas tres brechas las que articulan los objetivos específicos del trabajo y justifican el diseño metodológico descrito en el capítulo siguiente.

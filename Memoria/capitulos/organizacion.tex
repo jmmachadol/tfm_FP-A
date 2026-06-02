@@ -1,0 +1,50 @@
+% ── Organización del trabajo en grupo ────────────────────────────────────────
+\chapter*{Organización del trabajo en grupo}
+\addcontentsline{toc}{chapter}{Organización del trabajo en grupo}
+\thispagestyle{fancy}
+
+El presente TFE aborda la problemática identificada en la introducción: la brecha entre la complejidad del dato financiero y la simplicidad de los métodos de pronóstico predominantes en FP\&A. Para cerrar esta brecha, el trabajo se estructura en tres componentes técnicas diferenciadas que, individualmente, constituyen aportes sustanciales al campo de la inteligencia artificial aplicada a las finanzas corporativas.
+
+\section*{Partes que aborda el TFE}
+
+\textbf{Componente 1: Infraestructura de backtesting temporal.} Garantiza que la comparación de modelos se realice bajo un protocolo de validación temporal estrictamente controlado, evitando la fuga de datos. Sus objetivos son: diseñar e implementar el motor de backtesting walk-forward con ventanas móviles, desarrollar el \textit{pipeline} de preprocesamiento temporalmente consciente, implementar validaciones automatizadas de ausencia de fuga de información, y documentar las decisiones metodológicas críticas.
+
+\textbf{Componente 2: Torneo de arquitecturas.} Implementa y evalúa modelos que representan cuatro niveles de complejidad algorítmica: baseline estadístico, machine learning, deep learning tabular y arquitecturas nativas de series temporales. Sus objetivos son: implementar modelos baseline (Naïve Estacional), modelos estadísticos clásicos (ETS, Holt-Winters, SARIMA), algoritmos de ML (LightGBM) y arquitecturas de deep learning (MLP, N-BEATS). Se diseña una interfaz común \texttt{BaseForecaster} para la integración uniforme de todos los modelos.
+
+\textbf{Componente 3: Evaluación orientada al valor.} Convierte el error estadístico en métricas de valor de negocio, demostrando el impacto económico de la precisión en FP\&A. Sus objetivos son: implementar métricas estadísticas estándar (MAE, RMSE, MAPE, sMAPE, MASE), diseñar métricas de impacto económico (WAPE, contribución al error absoluto por decil de volumen), desarrollar el análisis de estabilidad temporal del desempeño y proponer el \textit{framework} de selección de modelos.
+
+\section*{Distribución y estructura de la memoria}
+
+\begin{table}[H]
+\caption{\textbf{Tabla 1.} \textit{Organización del trabajo en grupo: distribución de responsabilidades.}}
+\label{tab:organizacion}
+\vspace{4pt}
+\begin{tabular}{>{\raggedright\arraybackslash}p{7cm} >{\raggedright\arraybackslash}p{7cm}}
+\toprule
+\textbf{Apartado de la memoria} & \textbf{Responsables} \\
+\midrule
+Introducción & Juan Camilo Rico Ballesteros \\
+Contexto y estado del arte & Juan José Blanco Mendoza \\
+Objetivos y metodología de trabajo & José Manuel Machado Loaiza \\
+Arquitectura, preprocesamiento, backtesting & José Manuel Machado Loaiza \\
+Módulos de modelos (baseline, estadístico, ML, DL) & Juan Camilo Rico Ballesteros \\
+Evaluación, métricas económicas, visualización & Juan José Blanco Mendoza \\
+Diseño del experimento y configuración & José Manuel Machado Loaiza, Juan Camilo Rico Ballesteros \\
+Resultados, estabilidad temporal, deciles & Juan José Blanco Mendoza \\
+Análisis de errores y comparativa & Juan Camilo Rico Ballesteros \\
+Métricas económicas e impacto de capital & Juan José Blanco Mendoza \\
+Conclusiones & Todos \\
+\bottomrule
+\end{tabular}
+\vspace{4pt}
+
+\small\textit{Fuente: elaboración propia.}
+\end{table}
+
+\section*{Mecanismos de coordinación}
+
+\textbf{Comunicación sincrónica:} reuniones semanales los lunes (18:00–19:30, Google Meet) para revisar el progreso, resolver bloqueos y planificar la siguiente iteración; integración técnica quincenal los miércoles (19:00) para revisar las interfaces entre módulos.
+
+\textbf{Comunicación asincrónica:} WhatsApp para comunicaciones urgentes; Word Online y \LaTeX{} para la elaboración colaborativa de la memoria con seguimiento de cambios; OneDrive para la gestión de versiones del documento.
+
+\textbf{Documentación y código:} la memoria se mantiene en este repositorio \LaTeX{} con control de versiones. El código fuente se gestiona en un repositorio privado de GitHub con tablero Kanban en GitHub Projects.

@@ -1,0 +1,19 @@
+# Entorno reproducible del TFM — Comparativa de modelos de pronóstico para FP&A
+# Probado con Python 3.13 (Windows, CPU). Las versiones reflejan el entorno de ejecución.
+
+numpy==2.3.5
+pandas==2.3.2
+scipy==1.17.1
+matplotlib==3.10.9
+seaborn==0.13.2
+
+# Modelos estadísticos clásicos
+statsmodels==0.14.6          # Holt-Winters (ExponentialSmoothing) y ETS de respaldo
+statsforecast==2.0.3         # AutoARIMA (Hyndman-Khandakar) y AutoETS, selección por AICc
+
+# Machine learning
+lightgbm==4.6.0
+scikit-learn==1.7.1
+
+# Deep learning (CPU). N-BEATS y MLP se implementan en PyTorch puro (sin Darts).
+torch==2.11.0

@@ -1,0 +1,31 @@
+% ── Resumen y Abstract ───────────────────────────────────────────────────────
+\chapter*{Resumen}
+\addcontentsline{toc}{chapter}{Resumen}
+\thispagestyle{fancy}
+
+La planificación y análisis financiero (FP\&A) constituye una función estratégica central en las organizaciones, cuya efectividad depende de la capacidad de generar estimaciones precisas y confiables de variables económicas futuras. A pesar de su criticidad para el cierre contable, la detección temprana de desviaciones presupuestarias y la toma de decisiones directivas, la literatura especializada documenta que la selección de modelos de pronóstico en este dominio se realiza frecuentemente bajo criterios heurísticos o empíricos, sin una evaluación cuantitativa sistemática de su desempeño real.
+
+El presente trabajo propone una evaluación comparativa de distintas familias de modelos de pronóstico aplicados a series temporales financieras mensuales, empleando un protocolo de backtesting temporal con ventanas de validación móviles (\textit{walk-forward}) como esquema de evaluación. Se implementa un \textit{pipeline} modular y reproducible en Python que integra métodos estadísticos clásicos de referencia (Seasonal Naïve, ETS, Holt-Winters, SARIMA), algoritmos de aprendizaje automático basados en \textit{gradient boosting} (LightGBM) y arquitecturas de aprendizaje profundo (MLP, N-BEATS). El desempeño de cada arquitectura se cuantifica mediante métricas de error estadístico (MAE, RMSE, MAPE, sMAPE, MASE) y métricas de impacto económico (WAPE, contribución al error absoluto ponderado), analizando resultados tanto a nivel agregado como desagregado por deciles de volumen de serie.
+
+Los resultados obtenidos permiten identificar qué arquitecturas de pronóstico aportan mayor valor cuantificable en entornos de FP\&A, y fundamentar la propuesta de un \textit{framework} cuantitativo de selección de modelos que trasciende los criterios heurísticos actuales, proporcionando una base metodológica robusta para la toma de decisiones financieras en contextos organizacionales reales.
+
+\vspace{0.5cm}
+\noindent\textbf{Palabras clave:} series temporales financieras, planificación financiera (FP\&A), backtesting temporal, métricas de impacto económico, aprendizaje automático.
+
+\clearpage
+
+% ── Abstract ─────────────────────────────────────────────────────────────────
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+\thispagestyle{fancy}
+
+\begin{otherlanguage}{english}
+Financial Planning and Analysis (FP\&A) is a central strategic function in organizations, whose effectiveness depends on the capacity to generate accurate and reliable estimates of future economic variables. Despite its criticality for month-end close processes, early detection of budget variances, and executive decision-making, the specialized literature documents that forecasting model selection in this domain is frequently conducted under heuristic or empirical criteria, without a systematic quantitative evaluation of real-world performance.
+
+This work proposes a comparative evaluation of different families of forecasting models applied to monthly financial time series, using a walk-forward temporal backtesting protocol as the evaluation scheme. A modular and reproducible Python pipeline is implemented, integrating classical statistical reference methods (Seasonal Naïve, ETS, Holt-Winters, SARIMA), gradient boosting machine learning algorithms (LightGBM), and deep learning architectures (MLP, N-BEATS). The performance of each architecture is quantified through statistical error metrics (MAE, RMSE, MAPE, sMAPE, MASE) and economic impact metrics (WAPE, weighted absolute error contribution by volume decile), analyzing results at both aggregate and disaggregated levels.
+
+The expected outcomes enable the identification of which forecasting architectures deliver the greatest quantifiable value in FP\&A environments and support the proposal of a quantitative model selection framework that transcends current heuristic criteria, providing a robust methodological basis for financial decision-making in real organizational contexts.
+
+\vspace{0.5cm}
+\noindent\textbf{Keywords:} financial time series, financial planning and analysis (FP\&A), temporal backtesting, economic impact metrics, machine learning.
+\end{otherlanguage}

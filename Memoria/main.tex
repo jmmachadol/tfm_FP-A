@@ -1,0 +1,261 @@
+% ============================================================
+%  TFM — Evaluación de modelos de pronóstico para FP&A
+%  Universidad Internacional de La Rioja (UNIR)
+%  Máster Universitario en Inteligencia Artificial
+%
+%  Compilar con: xelatex -> biber -> xelatex -> xelatex
+%  o usar:       latexmk -xelatex main.tex
+% ============================================================
+
+\documentclass[12pt, a4paper, oneside]{report}
+
+% ── Motor y codificación ─────────────────────────────────────────────────────
+\usepackage{fontspec}           % Fuentes OpenType/TrueType (requiere XeLaTeX)
+\usepackage{polyglossia}        % Idiomas con XeLaTeX
+\setdefaultlanguage{spanish}
+\setotherlanguage{english}
+
+% ── Fuentes institucionales UNIR ─────────────────────────────────────────────
+% Calibri y Calibri Light están disponibles en Windows por defecto.
+\setmainfont{Calibri}[
+  BoldFont       = Calibri Bold,
+  ItalicFont     = Calibri Italic,
+  BoldItalicFont = Calibri Bold Italic
+]
+\newfontfamily\calibrilight{Calibri Light}[
+  BoldFont       = Calibri,
+  ItalicFont     = Calibri Light Italic
+]
+
+% ── Página y márgenes UNIR ───────────────────────────────────────────────────
+\usepackage{geometry}
+\geometry{
+  a4paper,
+  left   = 3.0cm,
+  right  = 2.0cm,
+  top    = 2.5cm,
+  bottom = 2.5cm,
+  headheight = 15pt
+}
+
+% ── Interlineado y espaciado de párrafos UNIR ────────────────────────────────
+\usepackage{setspace}
+\setstretch{1.5}
+
+\usepackage{parskip}
+\setlength{\parskip}{6pt}
+\setlength{\parindent}{0pt}
+
+% ── Color corporativo UNIR (azul oscuro para títulos) ────────────────────────
+\usepackage{xcolor}
+\definecolor{unirblue}{RGB}{0, 70, 127}  % Azul UNIR
+
+% ── Formato de títulos y capítulos ───────────────────────────────────────────
+\usepackage{titlesec}
+
+% Capítulo (Título 1): Calibri Light 18pt, azul, sin "Capítulo N" en el encabezado
+\titleformat{\chapter}[block]
+  {\calibrilight\fontsize{18}{22}\selectfont\color{unirblue}}
+  {\thechapter.}{0.5em}{}
+\titlespacing{\chapter}{0pt}{0pt}{12pt}
+
+% Sección (Título 2): Calibri Light 14pt, azul
+\titleformat{\section}[block]
+  {\calibrilight\fontsize{14}{18}\selectfont\color{unirblue}}
+  {\thesection}{0.5em}{}
+\titlespacing{\section}{0pt}{12pt}{6pt}
+
+% Subsección (Título 3): Calibri Light 12pt, azul
+\titleformat{\subsection}[block]
+  {\calibrilight\fontsize{12}{16}\selectfont\color{unirblue}}
+  {\thesubsection}{0.5em}{}
+\titlespacing{\subsection}{0pt}{10pt}{4pt}
+
+% Suprimir el título "CAPÍTULO N" que LaTeX pone por defecto
+\titleformat{\chapter}[block]
+  {\calibrilight\fontsize{18}{22}\selectfont\color{unirblue}}
+  {\thechapter.}{0.5em}{}
+
+% ── Encabezado y pie de página UNIR ─────────────────────────────────────────
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small Rico Ballesteros, J.~C. \textbullet{} Blanco Mendoza, J.~J. \textbullet{} Machado Loaiza, J.~M.}
+\fancyhead[R]{\small Evaluación de modelos de pronóstico para FP\&A}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Las páginas de inicio de capítulo también llevan encabezado
+\fancypagestyle{plain}{%
+  \fancyhf{}
+  \fancyhead[L]{\small Rico Ballesteros, J.~C. \textbullet{} Blanco Mendoza, J.~J. \textbullet{} Machado Loaiza, J.~M.}
+  \fancyhead[R]{\small Evaluación de modelos de pronóstico para FP\&A}
+  \fancyfoot[C]{\thepage}
+  \renewcommand{\headrulewidth}{0.4pt}
+}
+
+% ── Tablas y figuras ─────────────────────────────────────────────────────────
+\usepackage{booktabs}           % Líneas de tabla de calidad
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{longtable}          % Tablas multipágina
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage[font=small, labelfont=bf, justification=justified,
+            singlelinecheck=false]{caption}
+% Los captions van en la parte SUPERIOR de tablas y figuras (norma UNIR).
+% Se posicionan manualmente con \caption antes del entorno.
+
+% ── Listas ──────────────────────────────────────────────────────────────────
+\usepackage{enumitem}
+\setlist[itemize]{leftmargin=*, itemsep=2pt, parsep=0pt}
+\setlist[enumerate]{leftmargin=*, itemsep=2pt, parsep=0pt}
+
+% ── Matemáticas ─────────────────────────────────────────────────────────────
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+% ── Código fuente ────────────────────────────────────────────────────────────
+\usepackage{listings}
+\usepackage{inconsolata}        % Fuente monoespaciada de calidad
+
+\lstset{
+  basicstyle   = \footnotesize\ttfamily,
+  breaklines   = true,
+  frame        = single,
+  numbers      = left,
+  numberstyle  = \tiny\color{gray},
+  commentstyle = \color{gray},
+  keywordstyle = \color{unirblue}\bfseries,
+  stringstyle  = \color{teal}
+}
+
+% ── Hipervínculos ────────────────────────────────────────────────────────────
+\usepackage[
+  colorlinks = true,
+  linkcolor  = unirblue,
+  citecolor  = unirblue,
+  urlcolor   = unirblue
+]{hyperref}
+\usepackage{url}
+
+% ── Bibliografía APA con BibLaTeX ───────────────────────────────────────────
+\usepackage[
+  backend    = biber,
+  style      = apa,
+  sortcites  = true,
+  sorting    = nyt
+]{biblatex}
+\addbibresource{referencias.bib}
+\DeclareLanguageMapping{spanish}{spanish-apa}
+
+% ── Índice de contenidos ─────────────────────────────────────────────────────
+\usepackage{tocloft}
+\setlength{\cftbeforechapskip}{4pt}
+
+% ── Portada ──────────────────────────────────────────────────────────────────
+\usepackage{titling}
+
+% ── Acrónimos ────────────────────────────────────────────────────────────────
+\usepackage[printonlyused]{acronym}
+
+% ── Utilidades ───────────────────────────────────────────────────────────────
+\usepackage{microtype}          % Mejora el espaciado tipográfico
+\usepackage{csquotes}           % Comillas tipográficamente correctas (requerido por biblatex-apa)
+
+% Tolerancia tipográfica: permite a LaTeX alargar líneas hasta 3em antes de
+% reportar Overfull; preserva la calidad visual con mínima intervención manual.
+\setlength{\emergencystretch}{3em}
+% Permite que las URLs se partan en cualquier punto (evita Overfull por URLs largas).
+\PassOptionsToPackage{hyphens}{url}
+
+% ============================================================
+%  DOCUMENTO
+% ============================================================
+\begin{document}
+
+% ── PORTADA ──────────────────────────────────────────────────────────────────
+\begin{titlepage}
+  \thispagestyle{empty}
+  \centering
+  \vspace*{1cm}
+
+  {\calibrilight\fontsize{16}{20}\selectfont\color{unirblue}
+    Universidad Internacional de La Rioja\\[0.3cm]
+    Escuela Superior de Ingeniería y Tecnología\\[0.3cm]
+    Máster Universitario en Inteligencia Artificial
+  }
+
+  \vspace{2.5cm}
+
+  {\calibrilight\fontsize{20}{26}\selectfont\bfseries\color{unirblue}
+    Evaluación de modelos de pronóstico\\[0.2cm]
+    para la planificación financiera (FP\&A)\\[0.2cm]
+    mediante backtesting temporal y\\[0.2cm]
+    métricas de impacto económico
+  }
+
+  \vspace{3cm}
+
+  {\fontsize{13}{17}\selectfont
+    \begin{tabular}{ll}
+      \textbf{Autores:}   & Juan Camilo Rico Ballesteros \\
+                          & Juan José Blanco Mendoza \\
+                          & José Manuel Machado Loaiza \\[0.5cm]
+      \textbf{Tipo:}      & Comparativa de soluciones \\[0.3cm]
+      \textbf{Directora:} & Marta María Arguedas Lafuente \\
+    \end{tabular}
+  }
+
+  \vfill
+  {\fontsize{12}{15}\selectfont Curso académico 2024-2025}
+\end{titlepage}
+
+% ── PÁGINAS PRELIMINARES (numeración romana) ──────────────────────────────────
+\pagenumbering{roman}
+
+\input{capitulos/resumen}
+
+\clearpage
+\tableofcontents
+\clearpage
+\listoftables
+\clearpage
+\listoffigures
+\clearpage
+
+\input{capitulos/organizacion}
+
+% ── CUERPO DEL TRABAJO (numeración arábiga) ───────────────────────────────────
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+\input{capitulos/cap1_introduccion}
+\input{capitulos/cap2_contexto}
+\input{capitulos/cap3_objetivos}
+\input{capitulos/cap4_planteamiento}
+\input{capitulos/cap5_resultados}
+\input{capitulos/cap6_discusion}
+\input{capitulos/cap7_conclusiones}
+
+% ── REFERENCIAS BIBLIOGRÁFICAS ────────────────────────────────────────────────
+\clearpage
+\phantomsection
+\addcontentsline{toc}{chapter}{Referencias bibliográficas}
+{\setstretch{1.0}
+\printbibliography[title={Referencias bibliográficas}]}
+
+% ── ANEXOS ────────────────────────────────────────────────────────────────────
+\clearpage
+\appendix
+\input{capitulos/anexo_a}
+
+% ── ÍNDICE DE ACRÓNIMOS ───────────────────────────────────────────────────────
+\clearpage
+\phantomsection
+\addcontentsline{toc}{chapter}{Índice de acrónimos}
+\chapter*{Índice de acrónimos}
+\input{capitulos/acronimos}
+
+\end{document}

@@ -1,0 +1,55 @@
+# ─── Python ──────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# ─── Entornos virtuales ───────────────────────────────────────────────────────
+env/
+venv/
+.venv/
+.env
+
+# ─── Jupyter ─────────────────────────────────────────────────────────────────
+.ipynb_checkpoints/
+
+# ─── Dataset (se descarga automáticamente con data_loader.py) ─────────────────
+data/raw/
+data/interim/
+data/processed/
+
+# ─── LaTeX — archivos auxiliares de compilación ──────────────────────────────
+memoria/*.aux
+memoria/*.bbl
+memoria/*.bcf
+memoria/*.blg
+memoria/*.fdb_latexmk
+memoria/*.fls
+memoria/*.lof
+memoria/*.log
+memoria/*.lot
+memoria/*.out
+memoria/*.run.xml
+memoria/*.synctex.gz
+memoria/*.toc
+
+# ─── Archivos temporales del sistema ─────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# ─── Documentos institucionales (no redistribuibles) ─────────────────────────
+instrucciones.pdf
+rubrica.pdf
+
+# ─── Modelos y checkpoints PyTorch ───────────────────────────────────────────
+*.pt
+*.pth
+*.ckpt

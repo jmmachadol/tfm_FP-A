@@ -1,0 +1,39 @@
+% ── Capítulo 7: Conclusiones y trabajo futuro ────────────────────────────────
+\chapter{Conclusiones y trabajo futuro}
+\label{cap:conclusiones}
+
+\section{Conclusiones}
+\label{sec:conclusiones}
+
+El presente trabajo ha desarrollado y evaluado un \textit{pipeline} modular de pronóstico de series temporales financieras mensuales, con el objetivo de comparar el desempeño de siete arquitecturas de modelos bajo un protocolo de backtesting temporal estrictamente controlado. Las conclusiones que se presentan a continuación se articulan directamente con cada uno de los objetivos específicos formulados en el Capítulo~\ref{cap:objetivos}.
+
+\textbf{OE1 — Revisión del estado del arte.} La revisión sistemática de la literatura identificó cuatro familias de modelos con representación sólida en benchmarks de series temporales financieras: métodos estadísticos clásicos (ETS, Holt-Winters, SARIMA), algoritmos de \textit{machine learning} basados en \textit{gradient boosting} (LightGBM), arquitecturas de aprendizaje profundo tabular (MLP) y arquitecturas nativas de series temporales (N-BEATS). La revisión confirmó también que la selección del modelo no puede basarse en la sofisticación algorítmica en abstracto, sino que debe estar fundamentada en las características concretas de la serie: longitud, estacionariedad, presencia de cambios estructurales y horizonte de planificación. Este objetivo se considera plenamente alcanzado.
+
+\textbf{OE2 — Implementación del \textit{pipeline} modular.} Se desarrolló un \textit{pipeline} reproducible en Python con separación estricta de responsabilidades entre módulos: \texttt{data\_loader.py}, \texttt{preprocessor.py}, \texttt{backtesting.py}, \texttt{evaluation.py}, \texttt{visualization.py} y el directorio \texttt{models/}, que contiene una implementación independiente por familia de modelos. Cada implementación sigue la interfaz \texttt{BaseForecaster} o \texttt{GlobalBaseForecaster}, lo que permite al cuaderno orquestador tratar todos los modelos de forma uniforme. La arquitectura de importación por bloques \texttt{try/except} garantiza que el fallo de un modelo no interrumpe la evaluación de los restantes. Este objetivo se considera plenamente alcanzado.
+
+\textbf{OE3 — Protocolo walk-forward sin fuga de datos.} Se implementó un motor de backtesting temporal con \textit{expanding window}, step de 12 meses y ventana inicial de 54 meses, que genera entre 4 y 12 iteraciones de evaluación independientes por serie según su longitud. La función \texttt{verify\_no\_leakage} verificó automáticamente la disyunción de los índices de entrenamiento y evaluación en una muestra de 20 series seleccionadas aleatoriamente. Este objetivo se considera plenamente alcanzado y constituye la garantía metodológica fundamental del trabajo.
+
+\textbf{OE4 — Evaluación con seis métricas.} Se implementaron y validaron contra ejemplos calculados manualmente seis métricas de evaluación: MAE, RMSE, MAPE, sMAPE, MASE y WAPE. Las 14 pruebas unitarias del módulo \texttt{evaluation.py} pasan sin errores. El análisis se realizó tanto a nivel global (media sobre todas las series y folds) como desagregado por decil de volumen absoluto. Este objetivo se considera plenamente alcanzado.
+
+\textbf{OE5 — \textit{Framework} de selección de modelos.} Con base en los resultados del backtesting, se propone un \textit{framework} de tres reglas operativas, documentado en la Sección~\ref{sec:framework_seleccion}: (1) para series con menos de 120 observaciones, los métodos estadísticos clásicos ofrecen el mejor balance entre precisión y estabilidad; (2) para las cuentas de mayor volumen financiero, la estabilidad temporal debe priorizar sobre la mínima media de error; (3) el paradigma de \textit{global forecasting} solo se justifica con más de 500 series de patrones similares o series individuales que superen las 500 observaciones. Este objetivo se considera parcialmente alcanzado, dado que los umbrales propuestos son cualitativos; una extensión futura con mayor variedad de datasets permitiría derivar umbrales cuantitativos más robustos.
+
+\textbf{Conclusión transversal.} El hallazgo más relevante de la comparativa es que los métodos estadísticos clásicos ---ETS, Holt-Winters y SARIMA--- superan consistentemente en precisión y estabilidad a los modelos de machine learning y deep learning sobre el conjunto M4 Financial Monthly. Este resultado es coherente con la literatura de benchmarking \parencite{Makridakis2022, Cerqueira2022} y tiene una implicación práctica directa: en el rango de longitud habitual de las series financieras corporativas (menos de 200 observaciones mensuales), la inversión en infraestructura de machine learning no se justifica por mejoras en precisión, y puede estar contraindicada por el mayor coste de implementación, mantenimiento y explicabilidad. El \textit{framework} de selección propuesto ofrece, por primera vez en el contexto de FP\&A con este nivel de rigor metodológico, criterios cuantitativos para tomar esa decisión de forma objetiva.
+
+\section{Líneas de trabajo futuro}
+\label{sec:trabajo_futuro}
+
+Las limitaciones documentadas en la Sección~\ref{sec:limitaciones} sugieren las siguientes líneas de investigación que aportarían valor añadido al trabajo realizado:
+
+\begin{itemize}
+  \item \textbf{Datos de origen organizacional real.} La replicación del protocolo sobre series de cierres mensuales reales de una organización permitiría el análisis de contribución al error por línea de P\&L, satisfaciendo plenamente el OE4 en su dimensión de impacto económico por categoría contable.
+
+  \item \textbf{Modelos fundacionales especializados.} Los resultados de \textcite{Rahimikia2025} y \textcite{Zhu2025FinCast} sugieren que los modelos fundacionales preentrenados en datos financieros podrían superar a los modelos locales en condiciones de alta heterogeneidad. Su evaluación bajo el mismo protocolo walk-forward queda como extensión prioritaria.
+
+  \item \textbf{Optimización bayesiana de hiperparámetros con validación temporal.} Los hiperparámetros de LightGBM, MLP y N-BEATS se fijaron manualmente en este trabajo. Una búsqueda bayesiana con validación cruzada temporal interna podría mejorar el rendimiento relativo de los modelos globales sin comprometer la integridad del protocolo.
+
+  \item \textbf{Análisis de horizontes múltiples.} El horizonte de 18 meses se evalúa de forma agregada. Un análisis por sub-horizonte (1--3 meses, 4--6, 7--12, 13--18) permitiría identificar en qué rango temporal cada familia de modelos resulta más competitiva, información valiosa para los ciclos de cierre mensual y las previsiones de largo plazo en FP\&A.
+
+  \item \textbf{Incorporación de variables exógenas.} Los modelos implementados son univariados. La incorporación de indicadores macroeconómicos (tipos de interés, inflación, índices de actividad) mediante arquitecturas que admiten variables exógenas ---como SARIMA con regresores o el Temporal Fusion Transformer--- podría mejorar el desempeño en entornos con cambios estructurales frecuentes \parencite{LimTFT2021}.
+
+  \item \textbf{Aplicación en entornos de producción.} Una validación del \textit{framework} propuesto en un entorno de planificación financiera real, con series etiquetadas por centro de coste y cuenta contable, permitiría evaluar la transferibilidad de las conclusiones obtenidas sobre datos M4 al dominio corporativo específico para el que se ha diseñado la metodología.
+\end{itemize}

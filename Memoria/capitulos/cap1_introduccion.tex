@@ -1,0 +1,69 @@
+% ── Capítulo 1: Introducción ─────────────────────────────────────────────────
+\chapter{Introducción}
+\label{cap:introduccion}
+
+En el dinámico entorno empresarial actual, la Planificación y Análisis Financiero (FP\&A) se ha consolidado como una de las funciones estratégicas centrales de las organizaciones, donde la capacidad de anticipar valores futuros es crítica para el cierre contable y la toma de decisiones directivas. Sin embargo, la literatura señala que muchas organizaciones siguen dependiendo de criterios heurísticos o métodos tradicionales que no logran capturar la complejidad y no-estacionariedad de las series temporales financieras \parencite{Hyndman2021}.
+
+Este trabajo aborda dicha problemática mediante la construcción de un \textit{pipeline} de pronóstico modular que permite comparar arquitecturas clásicas con modelos de aprendizaje automático y aprendizaje profundo en condiciones metodológicamente rigurosas. El rigor de esta evaluación se fundamenta en un esquema de backtesting temporal de ventanas móviles (\textit{walk-forward}), metodología esencial para garantizar la validez del modelo en condiciones reales y evitar la fuga de información o \textit{data leakage} en contextos financieros \parencite{Bergmeir2012}.
+
+El núcleo diferencial de esta investigación reside en la transición del error estadístico hacia el valor de negocio. Mientras que la precisión técnica se mide mediante errores tradicionales (MAE, RMSE, sMAPE, MASE), este estudio introduce métricas de impacto económico como el WAPE y la contribución al error absoluto ponderado, que permiten demostrar que una mejora en la exactitud del pronóstico se traduce directamente en una reducción de la varianza presupuestaria \parencite{Makridakis2025M6}.
+
+\section{Motivación}
+\label{sec:motivacion}
+
+La Planificación y Análisis Financiero (FP\&A) constituye el pilar estratégico sobre el cual las organizaciones fundamentan su resiliencia operativa y su solvencia a largo plazo. El problema central que aborda el presente trabajo es la ineficiencia y falta de rigor sistémico en la generación de pronósticos financieros, una actividad que, a pesar de su criticidad, sigue operando bajo metodologías que no han evolucionado al ritmo de la complejidad del mercado actual.
+
+El problema identificado reside en la desconexión existente entre la naturaleza de las series temporales financieras y las herramientas utilizadas para su proyección. Mientras que los datos financieros modernos exhiben comportamientos no lineales, estacionalidades heterogéneas y una alta sensibilidad a variables externas, la práctica común en FP\&A suele basarse en criterios heurísticos o juicios subjetivos del analista. Esta dependencia de la ``intuición experta'' no solo limita la escalabilidad de los procesos, sino que introduce sesgos cognitivos que restan fiabilidad a las estimaciones \parencite{Armstrong2001}.
+
+Existen diferentes causas de este problema. En primer lugar, existe una resistencia técnica a abandonar modelos de suavizado exponencial o promedios móviles debido a su aparente simplicidad, ignorando que estos modelos fallan al capturar cambios estructurales en los datos \parencite{Hyndman2021}. En segundo lugar, la implementación de técnicas de aprendizaje automático en este dominio se ha visto frenada por la ausencia de protocolos de evaluación adecuados: la aplicación de validaciones cruzadas estándar (K-Fold) en series de tiempo es una causa recurrente de resultados espurios debido a la fuga de información, lo que genera una falsa confianza en modelos que luego fracasan en el entorno real \parencite{Bergmeir2012}.
+
+La importancia de este estudio para la comunidad científica radica en la propuesta de un marco de evaluación que trasciende el error estadístico puro. Es imperativo establecer \textit{benchmarks} comparativos entre familias de modelos bajo condiciones de backtesting temporal riguroso. Este trabajo aporta un ejemplo aplicado de cómo la ciencia de datos debe integrarse en la gestión empresarial: no como un fin en sí mismo, sino como una herramienta de optimización de recursos.
+
+La relevancia del problema es, en última instancia, económica. La incapacidad de prever con exactitud el flujo de caja o los ingresos se traduce en una gestión ineficiente del capital de trabajo. Un pronóstico impreciso obliga a las empresas a mantener reservas de liquidez improductivas o a incurrir en costes financieros elevados para cubrir déficits imprevistos. Al demostrar que la precisión técnica se traduce en una reducción de la varianza presupuestaria, este trabajo justifica la transición hacia una Planificación Financiera más rigurosa, proporcionando una base cuantitativa para la toma de decisiones que afecta directamente la competitividad y estabilidad de la organización \parencite{Fildes2022}.
+
+\section{Planteamiento del trabajo}
+\label{sec:planteamiento}
+
+El núcleo problemático de este TFE se define como la persistente brecha entre la complejidad intrínseca del dato financiero y la simplicidad de los métodos de pronóstico predominantes en la industria. Mientras que las series temporales de FP\&A (ingresos, flujo de caja, gastos operativos) exhiben comportamientos no lineales, estacionalidades heterogéneas y alta sensibilidad a perturbaciones externas, las organizaciones siguen operando bajo un ``reduccionismo metodológico'' basado en modelos lineales y heurísticas manuales \parencite{Hyndman2021}.
+
+Esta brecha no es un problema meramente académico; es un fallo de ingeniería. La utilización de métodos simples ante datos complejos genera un fenómeno de subajuste (\textit{underfitting}) sistémico: estos modelos son incapaces de capturar las dependencias de largo plazo o los cambios estructurales, lo que deriva en proyecciones que, aunque aparentemente estables, son fundamentalmente erróneas cuando el mercado cambia de régimen.
+
+La intervención propuesta no busca la complejidad por la complejidad, sino la adecuación del método a la naturaleza del dato. Se plantea el desarrollo de un \textit{pipeline} de software modular que actúe como laboratorio de pruebas para determinar qué nivel de inteligencia algorítmica es necesario para cerrar la brecha en términos cuantificables. El trabajo propone un ``torneo de arquitecturas'' categorizado por su capacidad de procesar complejidad creciente, tal como muestra la Tabla~\ref{tab:arquitecturas}.
+
+\begin{table}[H]
+\caption{\textbf{Tabla 2.} \textit{Familias de modelos evaluados, ordenados por complejidad algorítmica creciente.}}
+\label{tab:arquitecturas}
+\vspace{4pt}
+\begin{tabular}{>{\raggedright\arraybackslash}p{3.5cm} >{\raggedright\arraybackslash}p{3.5cm} >{\raggedright\arraybackslash}p{6cm}}
+\toprule
+\textbf{Nivel} & \textbf{Modelos} & \textbf{Capacidad característica} \\
+\midrule
+Baseline estadístico & Seasonal Naïve & Referencia mínima: repite el patrón estacional del año anterior \\
+Estadístico clásico & ETS, Holt-Winters, SARIMA & Captura tendencia y estacionalidad; parsimonia paramétrica \\
+Machine Learning & LightGBM & Relaciones no lineales mediante \textit{gradient boosting} global \\
+Deep Learning & MLP, N-BEATS & Patrones complejos; N-BEATS con descomposición tendencia/estacionalidad \\
+\bottomrule
+\end{tabular}
+\vspace{4pt}
+
+\small\textit{Fuente: elaboración propia.}
+\end{table}
+
+La finalidad del trabajo es demostrar, mediante un protocolo de backtesting temporal estrictamente controlado, cuál de estas familias ofrece mayor valor en entornos de FP\&A. La arquitectura de software desarrollada no solo comparará errores técnicos (sMAPE, MASE), sino que integrará métricas de impacto económico (WAPE, contribución al error) que permitan cuantificar el valor de adoptar un modelo más preciso.
+
+\section{Estructura del trabajo}
+\label{sec:estructura}
+
+Para abordar de manera sistemática el problema de la brecha metodológica en el entorno de FP\&A, la presente memoria se estructura en siete capítulos, siguiendo la organización de una comparativa de soluciones \parencite[§2.6]{Hyndman2021}:
+
+\begin{itemize}
+  \item \textbf{Capítulo 1 (presente).} Introducción, motivación y planteamiento del problema.
+  \item \textbf{Capítulo 2. Contexto y estado del arte.} Análisis del entorno operativo de FP\&A y revisión crítica de la literatura sobre familias de modelos de pronóstico, métodos de validación temporal y métricas de evaluación.
+  \item \textbf{Capítulo 3. Objetivos concretos y metodología de trabajo.} Objetivo general y objetivos específicos SMART, y descripción de las seis fases de ejecución del proyecto.
+  \item \textbf{Capítulo 4. Planteamiento de la comparativa.} Descripción del diseño experimental: dataset, modelos seleccionados, métricas adoptadas, protocolo walk-forward y criterios de éxito.
+  \item \textbf{Capítulo 5. Desarrollo de la comparativa.} Resultados cuantitativos del experimento: tabla modelo × métrica con media y desviación estándar sobre los folds walk-forward, análisis de estabilidad temporal y desagregación por deciles de volumen.
+  \item \textbf{Capítulo 6. Discusión y análisis de resultados.} Interpretación crítica de los resultados, análisis de ventajas y limitaciones de cada familia de modelos, y propuesta del \textit{framework} cuantitativo de selección.
+  \item \textbf{Capítulo 7. Conclusiones y trabajo futuro.} Síntesis de hallazgos, relación con los objetivos específicos planteados y líneas de investigación futura.
+\end{itemize}
+
+El Anexo A incluye el acceso al repositorio con el código fuente modular desarrollado en Python y la documentación técnica necesaria para la reproducibilidad de los experimentos.
