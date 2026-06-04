@@ -558,15 +558,21 @@ class DocBuilder:
         self._fix_headers_footers()
 
     def _clear_body(self):
-        """Elimina todos los párrafos y tablas del cuerpo, preserva sectPr."""
+        """Elimina TODO el contenido del template, preserva solo el sectPr final."""
         body = self.doc.element.body
-        to_remove = []
-        for child in body:
-            tag = child.tag.split("}")[-1]  # local name
-            if tag in ("p", "tbl"):
-                to_remove.append(child)
-        for el in to_remove:
-            body.remove(el)
+        children = list(body)
+        # Guardar el ultimo sectPr (contiene margenes, encabezado y pie de pagina)
+        last_sectPr = None
+        for child in reversed(children):
+            if child.tag.split("}")[-1] == "sectPr":
+                last_sectPr = child
+                break
+        # Eliminar TODOS los hijos (incluyendo tablas residuales de la plantilla)
+        for child in children:
+            body.remove(child)
+        # Restaurar sectPr
+        if last_sectPr is not None:
+            body.append(last_sectPr)
 
     def _fix_headers_footers(self):
         """Actualiza el encabezado con los nombres correctos de los autores."""
@@ -685,15 +691,27 @@ class DocBuilder:
     # ── Headings ──────────────────────────────────────────────────────────────
 
     def add_heading(self, text: str, level: int):
-        """level 0=chapter(H1), 1=section(H2), 2=subsection(H3), -1=unnumbered chapter"""
+        """level 0=chapter(H1), 1=section(H2), 2=subsection(H3), -1=unnumbered.
+
+        Las subsecciones (Heading 3) se renderizan como parrafo Normal en negrita
+        sin numeracion, siguiendo la recomendacion del revisor de evitar
+        subsecciones numeradas en la metodologia.
+        """
+        if level == 2:
+            # Subsecciones: negrita sin numeracion automatica
+            p = self.doc.add_paragraph(style="Normal")
+            _add_runs(p, text)
+            for run in p.runs:
+                run.bold = True
+            p.paragraph_format.space_before = Pt(10)
+            p.paragraph_format.space_after = Pt(4)
+            return p
         if level == -1:
             style = "Título 1 sin numerar"
         elif level == 0:
             style = "Heading 1"
-        elif level == 1:
-            style = "Heading 2"
         else:
-            style = "Heading 3"
+            style = "Heading 2"
         p = self.doc.add_paragraph(style=style)
         _add_runs(p, text)
         return p
@@ -702,6 +720,8 @@ class DocBuilder:
 
     def add_block(self, block: Block):
         if block.kind == "heading":
+            if block.level == 0:  # Salto de pagina antes de cada capitulo
+                self.doc.add_page_break()
             self.add_heading(block.text, block.level)
 
         elif block.kind == "para":
@@ -775,6 +795,43 @@ class DocBuilder:
 
     # ── Save ──────────────────────────────────────────────────────────────────
 
+    def _insert_word_field(self, field_code: str):
+        """Inserta un campo Word (TOC, LoF, LoT) actualizable con F9 en Word."""
+        from docx.oxml import OxmlElement as El
+        from docx.oxml.ns import qn
+        p = self.doc.add_paragraph(style="Normal")
+        run = p.add_run()
+        fc_begin = El("w:fldChar")
+        fc_begin.set(qn("w:fldCharType"), "begin")
+        instr = El("w:instrText")
+        instr.set(qn("xml:space"), "preserve")
+        instr.text = field_code
+        fc_sep = El("w:fldChar")
+        fc_sep.set(qn("w:fldCharType"), "separate")
+        run2 = p.add_run("[Actualizar con clic derecho → Actualizar campo]")
+        run2.font.color.rgb = RGBColor(0x80, 0x80, 0x80)
+        run2.font.italic = True
+        fc_end = El("w:fldChar")
+        fc_end.set(qn("w:fldCharType"), "end")
+        run3 = p.add_run()
+        run._r.append(fc_begin)
+        run._r.append(instr)
+        run._r.append(fc_sep)
+        run3._r.append(fc_end)
+        return p
+
+    def add_indices_pages(self):
+        """Inserta las paginas de Indice de contenidos, figuras y tablas."""
+        self.add_titulo_indice("Índice de contenidos")
+        self._insert_word_field('TOC \\o "1-3" \\h \\z \\u')
+        self.doc.add_page_break()
+        self.add_titulo_indice("Índice de figuras")
+        self._insert_word_field('TOC \\h \\z \\c "Figuras"')
+        self.doc.add_page_break()
+        self.add_titulo_indice("Índice de tablas")
+        self._insert_word_field('TOC \\h \\z \\c "Tabla"')
+        self.doc.add_page_break()
+
     def save(self, path: Path):
         self.doc.save(str(path))
         print(f"Guardado: {path}")
@@ -838,6 +895,9 @@ def main():
 
     # ── Portada ───────────────────────────────────────────────────────────────
     builder.add_cover()
+
+    # ── Índices (ToC, LoF, LoT) ────────────────────────────────────────────────
+    builder.add_indices_pages()
 
     # ── Resumen / Abstract / Organización ─────────────────────────────────────
     for name, path, section_type in CHAPTER_FILES:
