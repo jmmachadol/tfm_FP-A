@@ -19,7 +19,7 @@ Máster Universitario en Inteligencia Artificial
 
 ## Descripción
 
-Este repositorio contiene el código, los resultados y la memoria LaTeX del TFM cuyo objetivo es comparar el desempeño de distintas familias de modelos de pronóstico —desde métodos estadísticos clásicos hasta arquitecturas de aprendizaje profundo— aplicados a series temporales financieras mensuales del dataset M4, bajo un protocolo de backtesting temporal con ventanas móviles (*walk-forward*) y un conjunto de métricas estadísticas y de impacto económico.
+Este repositorio contiene el código, los resultados y la memoria académica del TFM cuyo objetivo es comparar el desempeño de distintas familias de modelos de pronóstico —desde métodos estadísticos clásicos hasta arquitecturas de aprendizaje profundo— aplicados a series temporales financieras mensuales del dataset M4, bajo un protocolo de backtesting temporal con ventanas móviles (*walk-forward*) y un conjunto de métricas estadísticas y de impacto económico. Los resultados incluyen intervalos de confianza bootstrap al 95 % (B = 1 000, método percentil) para verificar la significación estadística de las diferencias entre modelos.
 
 ---
 
@@ -40,7 +40,7 @@ tfm_FP-A/
 │   ├── data_loader.py           # Descarga con caché del M4 Financial Monthly
 │   ├── preprocessor.py          # Filtrado y submuestra estratificada
 │   ├── backtesting.py           # Motor walk-forward + verificador de leakage
-│   ├── evaluation.py            # Seis métricas de evaluación validadas
+│   ├── evaluation.py            # Seis métricas de evaluación + bootstrap_smape_diff_ci()
 │   ├── visualization.py         # Generación de las cinco figuras del experimento
 │   └── models/
 │       ├── base.py              # Interfaces BaseForecaster / GlobalBaseForecaster
@@ -56,27 +56,23 @@ tfm_FP-A/
 │   └── test_backtesting.py      # 6 pruebas: leakage, geometría, rolling/expanding
 │
 ├── results/
-│   ├── tables/                  # CSV con resultados numéricos
-│   └── figures/                 # PNG de las figuras del experimento (fig01-fig05)
+│   ├── tables/
+│   │   ├── resultados_comparativa.csv     # Métricas medias por modelo (7 modelos × 6 métricas)
+│   │   ├── resultados_bootstrap_ci.csv    # IC bootstrap 95 % (modelo − SNaive, B=1000, N=200)
+│   │   └── resultados_detalle.csv         # Resultados por serie y fold
+│   └── figures/                           # PNG de las cinco figuras del experimento
 │
-├── memoria/                     # Documento académico LaTeX
-│   ├── main.tex                 # Archivo principal
-│   ├── referencias.bib          # Bibliografía APA verificada (17 referencias)
-│   ├── main.pdf                 # Memoria compilada (entregable)
-│   ├── TFM_Entrega2.docx        # Exportación Word (entregable)
-│   ├── figuras/                 # Figuras propias (diagrama de pipeline)
-│   └── capitulos/               # Un .tex por capítulo
-│       ├── resumen.tex
-│       ├── organizacion.tex
-│       ├── cap1_introduccion.tex
-│       ├── cap2_contexto.tex
-│       ├── cap3_objetivos.tex
-│       ├── cap4_planteamiento.tex
-│       ├── cap5_resultados.tex
-│       ├── cap6_discusion.tex
-│       ├── cap7_conclusiones.tex
-│       ├── anexo_a.tex
-│       └── acronimos.tex
+├── Memoria/                               # Documento académico (Word)
+│   └── Versiones y Entregas/
+│       └── Entrega_3/
+│           └── TFM_Entrega3_v15.docx      # Memoria final — Entrega 3 (entregable)
+│
+├── memoria/                               # Fuente LaTeX histórica (referencia)
+│   ├── main.tex
+│   ├── referencias.bib
+│   ├── main.pdf
+│   ├── figuras/
+│   └── capitulos/
 │
 ├── Codigo/
 │   └── TFE.ipynb                # Notebook exploratorio original (referencia histórica)
@@ -101,36 +97,14 @@ pip install -r requirements.txt
 python run_experiment.py --n-series 200 --max-folds 5
 ```
 
-Los datos del M4 se descargan automáticamente en `data/raw/` en la primera ejecución.
+Los datos del M4 se descargan automáticamente en `data/raw/` en la primera ejecución.  
+El script genera automáticamente `results/tables/resultados_bootstrap_ci.csv` con los intervalos de confianza bootstrap al 95 % para cada modelo frente a Seasonal Naïve.
 
-### 3. Actualizar la memoria LaTeX con los resultados
-
-```bash
-python update_results_latex.py
-```
-
-### 4. Ejecutar las pruebas automatizadas
+### 3. Ejecutar las pruebas automatizadas
 
 ```bash
 python tests/test_evaluation.py
 python tests/test_backtesting.py
-```
-
-### 5. Compilar la memoria LaTeX
-
-Requiere MiKTeX o TeX Live con XeLaTeX y Biber (y la fuente Calibri instalada en el sistema).
-
-```bash
-cd memoria
-xelatex main.tex && biber main && xelatex main.tex && xelatex main.tex
-```
-
-### 6. Exportar la memoria a Word
-
-```bash
-bash export_to_word.sh
-# o:
-python export_to_word.py
 ```
 
 ---
@@ -162,7 +136,24 @@ Licencia: MIT (acceso público)
 ## Métricas de evaluación
 
 **Estadísticas:** MAE, RMSE, MAPE, sMAPE (estándar M4), MASE  
-**Impacto económico:** WAPE, contribución al error por decil de volumen
+**Impacto económico:** WAPE, contribución al error por decil de volumen  
+**Inferencia estadística:** IC bootstrap percentil 95 % (B = 1 000) para diferencia sMAPE(modelo) − sMAPE(SNaive), unidad de remuestreo = serie (N = 200), pareado por serie a través de los folds
+
+---
+
+## Resultados principales (N = 200 series, max\_folds = 5, SEED = 42)
+
+| Modelo | sMAPE (%) | WAPE (%) | MASE | Diff vs SNaive (pp) | IC 95 % | Significativo |
+|---|---|---|---|---|---|---|
+| **ETS** | **10.005** | **10.081** | **1.017** | **−3.852** | [−4.517, −3.264] | Sí |
+| SARIMA | 10.825 | 10.881 | 1.093 | −3.154 | [−3.945, −2.481] | Sí |
+| Holt-Winters | 11.157 | 11.583 | 1.145 | −2.725 | [−3.515, −2.028] | Sí |
+| LightGBM | 11.682 | 11.542 | 1.291 | −1.998 | [−2.572, −1.447] | Sí |
+| MLP | 11.844 | 11.637 | 1.351 | −1.898 | [−2.453, −1.322] | Sí |
+| N-BEATS | 12.375 | 12.074 | 1.340 | −1.065 | [−1.509, −0.596] | Sí |
+| SNaive | 13.667 | 13.813 | 1.412 | 0.000 | — | — |
+
+ETS (AutoETS) es el mejor modelo en las seis métricas. Todos los modelos superan al baseline de forma estadísticamente significativa (IC 95 % no contiene el cero).
 
 ---
 

@@ -53,3 +53,15 @@ rubrica.pdf
 *.pt
 *.pth
 *.ckpt
+
+# ─── Directorios XML desempaquetados (edición Word, no rastrear) ──────────────
+Memoria/**/tfm_unpacked_*/
+**/tfm_unpacked_*/
+
+# ─── Archivos temporales de Word ──────────────────────────────────────────────
+~$*.docx
+Memoria/~$*.docx
+
+# ─── Versiones intermedias de la memoria (sólo conservar la final) ────────────
+Memoria/**/TFM_Entrega3_v0[0-9].docx
+Memoria/**/TFM_Entrega3_v1[0-4].docx

@@ -162,6 +162,84 @@ def wape(y_true: ArrayLike, y_pred: ArrayLike) -> float:
     return float(np.sum(np.abs(yt - yp)) / total * 100.0)
 
 
+def bootstrap_smape_diff_ci(
+    smape_model: ArrayLike,
+    smape_reference: ArrayLike,
+    B: int = 1000,
+    alpha: float = 0.05,
+    seed: int | None = None,
+) -> dict[str, float]:
+    r"""IC bootstrap percentil para la diferencia media sMAPE(modelo) − sMAPE(referencia).
+
+    Calcula el intervalo de confianza al nivel ``1 − alpha`` mediante el método
+    de percentil bootstrap (Efron & Tibshirani, 1993) sobre la diferencia pareada
+    por serie entre el modelo evaluado y la referencia (Seasonal Naïve).
+
+    Cada elemento de las entradas representa la media del sMAPE de una serie a
+    través de todos sus folds del walk-forward, de modo que la unidad de
+    remuestreo es la serie (N = 200) y se preserva la estructura pareada del
+    experimento.
+
+    Valores negativos de ``diff_mean`` indican que el modelo mejora a la
+    referencia; positivos indican deterioro.
+
+    Args:
+        smape_model: Array 1-D con el sMAPE medio por serie del modelo candidato.
+        smape_reference: Array 1-D con el sMAPE medio por serie de la referencia
+            (Seasonal Naïve). Debe tener la misma longitud que ``smape_model``.
+        B: Número de remuestras bootstrap. Por defecto 1 000.
+        alpha: Nivel de significación bilateral. Por defecto 0.05 (IC al 95 %).
+        seed: Semilla para ``np.random.default_rng``, garantizando reproducibilidad.
+
+    Returns:
+        Diccionario con las claves:
+
+        - ``diff_mean``: diferencia media observada (modelo − referencia).
+        - ``ci_lower``: límite inferior del IC bootstrap percentil.
+        - ``ci_upper``: límite superior del IC bootstrap percentil.
+        - ``significant``: ``True`` si el IC no contiene el cero, lo que indica
+          diferencia estadísticamente significativa al nivel ``alpha``.
+        - ``n_series``: número de series pareadas usadas en el análisis.
+
+    Raises:
+        ValueError: Si los arrays tienen longitudes distintas o están vacíos.
+
+    References:
+        Efron, B., & Tibshirani, R. J. (1993). *An Introduction to the Bootstrap*.
+        Chapman & Hall/CRC. (cap. 13, método de percentil).
+    """
+    m = np.asarray(smape_model, dtype=float).ravel()
+    r = np.asarray(smape_reference, dtype=float).ravel()
+
+    if m.size == 0 or r.size == 0:
+        raise ValueError("Los arrays de sMAPE no pueden estar vacíos.")
+    if m.shape != r.shape:
+        raise ValueError(
+            f"smape_model y smape_reference deben tener la misma longitud; "
+            f"se recibió {m.shape} y {r.shape}."
+        )
+
+    diffs = m - r
+    n = len(diffs)
+    observed_mean = float(np.mean(diffs))
+
+    rng = np.random.default_rng(seed)
+    # Vectorizado: shape (B, n) → evita bucle Python explícito
+    indices = rng.integers(0, n, size=(B, n))
+    boot_means = diffs[indices].mean(axis=1)
+
+    ci_lower = float(np.percentile(boot_means, 100.0 * alpha / 2.0))
+    ci_upper = float(np.percentile(boot_means, 100.0 * (1.0 - alpha / 2.0)))
+
+    return {
+        "diff_mean": observed_mean,
+        "ci_lower": ci_lower,
+        "ci_upper": ci_upper,
+        "significant": bool(ci_upper < 0.0 or ci_lower > 0.0),
+        "n_series": n,
+    }
+
+
 def error_contribution(
     abs_errors_by_group: Mapping[str, float],
 ) -> dict[str, float]:

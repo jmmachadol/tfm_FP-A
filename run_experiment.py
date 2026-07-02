@@ -4,7 +4,7 @@ Alternativa al notebook para entornos donde Jupyter no está disponible.
 Genera los mismos CSV y figuras que notebooks/main.ipynb.
 
 Uso:
-    python run_experiment.py [--n-series 400] [--no-dl] [--fast]
+    python run_experiment.py [--n-series 200] [--no-dl] [--fast]
 """
 
 from __future__ import annotations
@@ -26,7 +26,7 @@ from tqdm import tqdm
 from src.config import CONFIG, SEED, TABLES_DIR, FIGURES_DIR
 from src.utils import set_global_seed, get_logger
 from src.backtesting import generate_folds, split_series, verify_no_leakage
-from src.evaluation import compute_all
+from src.evaluation import compute_all, bootstrap_smape_diff_ci
 from src.data_loader import load_m4_finance
 from src.preprocessor import (
     filter_by_min_length, stratified_subsample,
@@ -218,9 +218,10 @@ def main():
             print(f"  {m}={row[m+'_mean']:.3f}±{row[m+'_std']:.3f}", end="")
         print()
 
-    # Criterios de éxito
-    SNAVE_REF = 14.45
-    print(f"\n=== CRITERIOS DE ÉXITO (referencia SNaive: {SNAVE_REF}%) ===\n")
+    # Criterios de éxito — referencia dinámica desde los resultados del experimento
+    snv_row = numeric_summary[numeric_summary["model"] == "SNaive"]
+    SNAVE_REF = float(snv_row["sMAPE_mean"].values[0]) if len(snv_row) > 0 else float("nan")
+    print(f"\n=== CRITERIOS DE ÉXITO (referencia SNaive: {SNAVE_REF:.3f}%) ===\n")
     print(f"{'Modelo':<15} {'sMAPE':>9} {'Delta(pp)':>10} {'MASE':>8} {'CV%':>7} {'Supera?':>9}")
     print("-" * 60)
     for _, row in numeric_summary.iterrows():
@@ -231,6 +232,61 @@ def main():
         cv = s_std / s_mean * 100 if s_mean > 0 else float("nan")
         supera = "SÍ" if diff >= 1.0 else ("marginal" if diff > 0 else "NO")
         print(f"{row['model']:<15} {s_mean:>9.3f} {diff:>+8.3f} {mase:>8.3f} {cv:>7.1f} {supera:>9}")
+
+    # Bootstrap CI al 95 % — diferencia pareada por serie: sMAPE(modelo) − sMAPE(SNaive)
+    # Unidad de remuestreo: serie (N=200). Método: percentil bootstrap, B=1000, SEED=42.
+    logger.info("Calculando IC bootstrap (B=1000, alpha=0.05)...")
+
+    def _series_smape_means(df: pd.DataFrame, model: str) -> pd.Series:
+        """sMAPE medio por serie para un modelo dado."""
+        sub = df[df["model"] == model][["series_idx", "sMAPE"]].dropna()
+        return sub.groupby("series_idx")["sMAPE"].mean()
+
+    snv_means = _series_smape_means(df_all, "SNaive")
+    bootstrap_rows = []
+    for model in present:
+        if model == "SNaive":
+            bootstrap_rows.append({
+                "model": model,
+                "diff_mean": 0.0,
+                "ci_lower": 0.0,
+                "ci_upper": 0.0,
+                "significant": False,
+                "n_series": len(snv_means),
+            })
+            continue
+        model_means = _series_smape_means(df_all, model)
+        common_idx = snv_means.index.intersection(model_means.index)
+        if len(common_idx) < 2:
+            logger.warning("  %s: series comunes insuficientes para bootstrap (%d)", model, len(common_idx))
+            continue
+        ci = bootstrap_smape_diff_ci(
+            model_means[common_idx].values,
+            snv_means[common_idx].values,
+            B=1000,
+            alpha=0.05,
+            seed=SEED,
+        )
+        ci["model"] = model
+        bootstrap_rows.append(ci)
+        sign_str = "SIGNIFICATIVO" if ci["significant"] else "no significativo"
+        logger.info(
+            "  %s: diff=%.3f pp  IC95=[%.3f, %.3f]  %s",
+            model, ci["diff_mean"], ci["ci_lower"], ci["ci_upper"], sign_str,
+        )
+
+    df_bootstrap = pd.DataFrame(bootstrap_rows)[
+        ["model", "diff_mean", "ci_lower", "ci_upper", "significant", "n_series"]
+    ]
+    df_bootstrap.to_csv(TABLES_DIR / "resultados_bootstrap_ci.csv", index=False)
+    logger.info("Bootstrap CI exportado a: %s", TABLES_DIR / "resultados_bootstrap_ci.csv")
+
+    print("\n=== INTERVALOS DE CONFIANZA BOOTSTRAP al 95 % (modelo - SNaive, pp) ===\n")
+    print(f"{'Modelo':<15} {'Diff(pp)':>10} {'IC_lower':>10} {'IC_upper':>10} {'Significativo':>14}")
+    print("-" * 65)
+    for _, row in df_bootstrap.iterrows():
+        sig = "SÍ" if row["significant"] else "NO"
+        print(f"{row['model']:<15} {row['diff_mean']:>+10.3f} {row['ci_lower']:>+10.3f} {row['ci_upper']:>+10.3f} {sig:>14}")
 
     # Generar figuras
     logger.info("Generando figuras...")

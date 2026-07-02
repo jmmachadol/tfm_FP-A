@@ -66,7 +66,7 @@ class ExperimentConfig:
     initial_train: int = 54
     step: int = 12
     window: str = "expanding"
-    n_series: int | None = 400
+    n_series: int | None = 200
     category: str = "Finance"
     frequency: str = "Monthly"
 
