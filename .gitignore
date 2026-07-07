@@ -24,19 +24,19 @@ data/interim/
 data/processed/
 
 # ─── LaTeX — archivos auxiliares de compilación ──────────────────────────────
-memoria/*.aux
-memoria/*.bbl
-memoria/*.bcf
-memoria/*.blg
-memoria/*.fdb_latexmk
-memoria/*.fls
-memoria/*.lof
-memoria/*.log
-memoria/*.lot
-memoria/*.out
-memoria/*.run.xml
-memoria/*.synctex.gz
-memoria/*.toc
+Memoria/Fuente LaTeX/*.aux
+Memoria/Fuente LaTeX/*.bbl
+Memoria/Fuente LaTeX/*.bcf
+Memoria/Fuente LaTeX/*.blg
+Memoria/Fuente LaTeX/*.fdb_latexmk
+Memoria/Fuente LaTeX/*.fls
+Memoria/Fuente LaTeX/*.lof
+Memoria/Fuente LaTeX/*.log
+Memoria/Fuente LaTeX/*.lot
+Memoria/Fuente LaTeX/*.out
+Memoria/Fuente LaTeX/*.run.xml
+Memoria/Fuente LaTeX/*.synctex.gz
+Memoria/Fuente LaTeX/*.toc
 
 # ─── Archivos temporales del sistema ─────────────────────────────────────────
 .DS_Store

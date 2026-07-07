@@ -62,17 +62,35 @@ tfm_FP-A/
 │   │   └── resultados_detalle.csv         # Resultados por serie y fold
 │   └── figures/                           # PNG de las cinco figuras del experimento
 │
-├── Memoria/                               # Documento académico (Word)
+├── Memoria/                               # Documento académico
+│   ├── Plantilla Grupal.docx              # Plantilla UNIR base para las entregas
+│   │
+│   ├── Fuente LaTeX/                      # Fuente LaTeX histórica (referencia)
+│   │   ├── main.tex
+│   │   ├── referencias.bib
+│   │   ├── main.pdf
+│   │   ├── figuras/
+│   │   └── capitulos/
+│   │
+│   ├── Revisiones y Feedback/             # Retroalimentación del tribunal/evaluadores
+│   │   └── Revisión grupo 5 ESIT.docx
+│   │
 │   └── Versiones y Entregas/
+│       ├── Entrega_1/
+│       │   ├── v1.1_Entrega01_..._Corregida.docx   # Versión final entregada
+│       │   ├── Propuesta Sección 4.docx
+│       │   └── Versiones antiguas/                 # Borradores v0.1 – v1.0
+│       ├── Entrega_2/
+│       │   ├── TFM_Entrega2.docx                   # Versión final entregada
+│       │   ├── R2_Grupo 5.docx                     # Revisión de la entrega 2
+│       │   └── Versiones antiguas/                 # Borrador previo a la reconstrucción
 │       └── Entrega_3/
-│           └── TFM_Entrega3_v16.docx      # Memoria final — Entrega 3 (entregable)
+│           ├── TFM_Entrega3_v16.docx                # Memoria final — Entrega 3 (entregable)
+│           └── Versiones antiguas/                  # Versiones intermedias v01 – v15
 │
-├── memoria/                               # Fuente LaTeX histórica (referencia)
-│   ├── main.tex
-│   ├── referencias.bib
-│   ├── main.pdf
-│   ├── figuras/
-│   └── capitulos/
+├── Bibliografía/
+│   ├── Estado del Arte/
+│   └── Libros y Referencias/
 │
 ├── Codigo/
 │   └── TFE.ipynb                # Notebook exploratorio original (referencia histórica)
@@ -80,6 +98,8 @@ tfm_FP-A/
 └── data/
     └── raw/                     # M4 dataset (se descarga automáticamente)
 ```
+
+Solo se conservan visibles las versiones finales de cada entrega; los borradores intermedios quedan archivados en las subcarpetas `Versiones antiguas/` de cada una, sin perderse.
 
 ---
 
