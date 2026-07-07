@@ -57,6 +57,7 @@ rubrica.pdf
 # ─── Directorios XML desempaquetados (edición Word, no rastrear) ──────────────
 Memoria/**/tfm_unpacked_*/
 **/tfm_unpacked_*/
+Memoria/**/unpacked/
 
 # ─── Archivos temporales de Word ──────────────────────────────────────────────
 ~$*.docx

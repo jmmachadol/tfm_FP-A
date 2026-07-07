@@ -281,6 +281,21 @@ def main():
     df_bootstrap.to_csv(TABLES_DIR / "resultados_bootstrap_ci.csv", index=False)
     logger.info("Bootstrap CI exportado a: %s", TABLES_DIR / "resultados_bootstrap_ci.csv")
 
+    # CV temporal por modelo: CV del sMAPE entre los folds de cada serie,
+    # promediado sobre la submuestra. Complementa al CV-sMAPE global
+    # (sigma/mu sobre el conjunto agregado folds x series) de la tabla resumen.
+    def _cv_temporal(df: pd.DataFrame, model: str) -> float:
+        sub = df[df["model"] == model].dropna(subset=["sMAPE"])
+        per_series = sub.groupby("series_idx")["sMAPE"].agg(
+            lambda g: g.std() / g.mean() * 100 if len(g) > 1 and g.mean() > 0 else np.nan
+        )
+        return float(per_series.dropna().mean())
+
+    cv_rows = [{"model": m, "cv_temporal_pct": _cv_temporal(df_all, m)} for m in present]
+    df_cv = pd.DataFrame(cv_rows)
+    df_cv.to_csv(TABLES_DIR / "resultados_cv_temporal.csv", index=False)
+    logger.info("CV temporal exportado a: %s", TABLES_DIR / "resultados_cv_temporal.csv")
+
     print("\n=== INTERVALOS DE CONFIANZA BOOTSTRAP al 95 % (modelo - SNaive, pp) ===\n")
     print(f"{'Modelo':<15} {'Diff(pp)':>10} {'IC_lower':>10} {'IC_upper':>10} {'Significativo':>14}")
     print("-" * 65)

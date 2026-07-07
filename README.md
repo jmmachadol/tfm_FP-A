@@ -59,6 +59,7 @@ tfm_FP-A/
 │   ├── tables/
 │   │   ├── resultados_comparativa.csv     # Métricas medias por modelo (7 modelos × 6 métricas)
 │   │   ├── resultados_bootstrap_ci.csv    # IC bootstrap 95 % (modelo − SNaive, B=1000, N=200)
+│   │   ├── resultados_cv_temporal.csv     # CV temporal del sMAPE por serie, promediado por modelo
 │   │   └── resultados_detalle.csv         # Resultados por serie y fold
 │   └── figures/                           # PNG de las cinco figuras del experimento
 │
@@ -84,9 +85,12 @@ tfm_FP-A/
 │       │   ├── TFM_Entrega2.docx                   # Versión final entregada
 │       │   ├── R2_Grupo 5.docx                     # Revisión de la entrega 2
 │       │   └── Versiones antiguas/                 # Borrador previo a la reconstrucción
-│       └── Entrega_3/
-│           ├── TFM_Entrega3_v16.docx                # Memoria final — Entrega 3 (entregable)
-│           └── Versiones antiguas/                  # Versiones intermedias v01 – v15
+│       ├── Entrega_3/
+│       │   ├── TFM_Entrega3.docx                    # Versión entregada — Entrega 3
+│       │   ├── R3 G5.docx                           # Revisión de la entrega 3
+│       │   └── Versiones antiguas/                  # Versiones intermedias v01 – v16
+│       └── Predeposito/
+│           └── TFM_Predeposito.docx                 # Versión de predepósito (entregable final)
 │
 ├── Bibliografía/
 │   ├── Estado del Arte/
