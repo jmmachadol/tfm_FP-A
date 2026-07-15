@@ -86,18 +86,22 @@ def run_local(model_name, ModelClass, series_list, volume_deciles, config, max_f
         desc=model_name, leave=False
     )):
         all_folds = generate_folds(len(series), config)
-        # Usar los últimos max_folds folds (los más recientes, más relevantes)
-        for fold in all_folds[-max_folds:]:
+        # Usar los últimos max_folds folds (los más recientes, más relevantes).
+        # fold_id se reindexa a la posición relativa dentro de la ventana retenida
+        # (0 = más antiguo de los retenidos, igual convención que run_global), en
+        # lugar del índice absoluto de generate_folds(), que depende de la longitud
+        # de cada serie y por tanto no es comparable entre series.
+        for rel_fold_id, fold in enumerate(all_folds[-max_folds:]):
             train, test = split_series(series, fold)
             try:
                 m = ModelClass()
                 m.fit(train)
                 pred = m.predict(config.horizon)
                 mets = compute_all(test, pred, train, config.seasonality)
-                rec = {"model": model_name, "series_idx": i, "fold_id": fold.fold_id, "decile": int(decile)}
+                rec = {"model": model_name, "series_idx": i, "fold_id": rel_fold_id, "decile": int(decile)}
                 rec.update(mets)
             except Exception:
-                rec = {"model": model_name, "series_idx": i, "fold_id": fold.fold_id,
+                rec = {"model": model_name, "series_idx": i, "fold_id": rel_fold_id,
                        "decile": int(decile), **{m: np.nan for m in METRICS}}
             records.append(rec)
     return records
