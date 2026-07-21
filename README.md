@@ -31,6 +31,7 @@ tfm_FP-A/
 ├── requirements.txt             # Dependencias Python exactas
 ├── run_experiment.py            # Script principal del experimento
 ├── benchmark_timing.py          # Benchmark homogéneo de coste computacional (Tabla 29)
+├── export_series_metadata.py    # Exporta metadatos de las 200 series (id, cuartil, longitud, folds, decil)
 ├── update_results_latex.py      # Actualiza los capítulos 5 y 6 con resultados reales
 ├── export_to_word.py            # Exporta la memoria LaTeX a Word
 ├── export_to_word.sh            # Script equivalente usando pandoc directamente
@@ -66,6 +67,7 @@ tfm_FP-A/
 │   │   ├── resultados_wape_decil.csv        # WAPE medio por modelo y decil de volumen
 │   │   ├── resultados_timing.csv            # Tiempos de ajuste/inferencia y tamaño por modelo
 │   │   ├── entorno_hardware.csv             # Entorno de hardware del benchmark de timing
+│   │   ├── series_metadata.csv              # Id, cuartil, longitud, folds y decil de las 200 series
 │   │   └── resultados_detalle.csv           # Resultados por serie y fold
 │   └── figures/                             # PNG de las figuras del experimento
 │
@@ -139,6 +141,14 @@ python benchmark_timing.py
 ```
 
 Genera `results/tables/resultados_timing.csv` y `results/tables/entorno_hardware.csv` (Tabla 29 de la memoria).
+
+### 5. (Opcional) Exportar metadatos de las 200 series
+
+```bash
+python export_series_metadata.py
+```
+
+Genera `results/tables/series_metadata.csv` (id, cuartil de longitud, longitud, folds retenidos y decil de volumen), con la misma metodología de deciles usada en `run_experiment.py` (ventana inicial de entrenamiento, sin información de folds de evaluación).
 
 ---
 
