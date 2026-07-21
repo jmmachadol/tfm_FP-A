@@ -30,6 +30,7 @@ tfm_FP-A/
 ├── README.md                    # Este archivo
 ├── requirements.txt             # Dependencias Python exactas
 ├── run_experiment.py            # Script principal del experimento
+├── benchmark_timing.py          # Benchmark homogéneo de coste computacional (Tabla 29)
 ├── update_results_latex.py      # Actualiza los capítulos 5 y 6 con resultados reales
 ├── export_to_word.py            # Exporta la memoria LaTeX a Word
 ├── export_to_word.sh            # Script equivalente usando pandoc directamente
@@ -41,7 +42,7 @@ tfm_FP-A/
 │   ├── preprocessor.py          # Filtrado y submuestra estratificada
 │   ├── backtesting.py           # Motor walk-forward + verificador de leakage
 │   ├── evaluation.py            # Seis métricas de evaluación + bootstrap_smape_diff_ci()
-│   ├── visualization.py         # Generación de las cinco figuras del experimento
+│   ├── visualization.py         # Generación de las figuras del experimento
 │   └── models/
 │       ├── base.py              # Interfaces BaseForecaster / GlobalBaseForecaster
 │       ├── baseline.py          # Seasonal Naïve
@@ -57,53 +58,53 @@ tfm_FP-A/
 │
 ├── results/
 │   ├── tables/
-│   │   ├── resultados_comparativa.csv     # Métricas medias por modelo (7 modelos × 6 métricas)
-│   │   ├── resultados_bootstrap_ci.csv    # IC bootstrap 95 % (modelo − SNaive, B=1000, N=200)
-│   │   ├── resultados_cv_temporal.csv     # CV temporal del sMAPE por serie, promediado por modelo
-│   │   └── resultados_detalle.csv         # Resultados por serie y fold
-│   └── figures/                           # PNG de las cinco figuras del experimento
+│   │   ├── resultados_comparativa.csv       # Métricas medias por modelo (7 modelos × 6 métricas)
+│   │   ├── resultados_bootstrap_ci.csv      # IC bootstrap 95 % (modelo − SNaive, B=1000, N=200)
+│   │   ├── resultados_bonferroni.csv        # IC ajustado 99,5 % (corrección de Bonferroni, 10 comparaciones)
+│   │   ├── resultados_cv_temporal.csv       # CV temporal del sMAPE por serie, promediado por modelo
+│   │   ├── resultados_distribucion_folds.csv # Nº de series por cantidad de folds retenidos
+│   │   ├── resultados_wape_decil.csv        # WAPE medio por modelo y decil de volumen
+│   │   ├── resultados_timing.csv            # Tiempos de ajuste/inferencia y tamaño por modelo
+│   │   ├── entorno_hardware.csv             # Entorno de hardware del benchmark de timing
+│   │   └── resultados_detalle.csv           # Resultados por serie y fold
+│   └── figures/                             # PNG de las figuras del experimento
 │
-├── Memoria/                               # Documento académico
-│   ├── Plantilla Grupal.docx              # Plantilla UNIR base para las entregas
-│   │
-│   ├── Fuente LaTeX/                      # Fuente LaTeX histórica (referencia)
+├── Memoria/                                 # Documento académico
+│   ├── Fuente LaTeX/                        # Fuente LaTeX histórica (referencia)
 │   │   ├── main.tex
 │   │   ├── referencias.bib
 │   │   ├── main.pdf
 │   │   ├── figuras/
 │   │   └── capitulos/
 │   │
-│   ├── Revisiones y Feedback/             # Retroalimentación del tribunal/evaluadores
-│   │   └── Revisión grupo 5 ESIT.docx
-│   │
 │   └── Versiones y Entregas/
 │       ├── Entrega_1/
 │       │   ├── v1.1_Entrega01_..._Corregida.docx   # Versión final entregada
-│       │   ├── Propuesta Sección 4.docx
-│       │   └── Versiones antiguas/                 # Borradores v0.1 – v1.0
+│       │   └── Propuesta Sección 4.docx
 │       ├── Entrega_2/
 │       │   ├── TFM_Entrega2.docx                   # Versión final entregada
-│       │   ├── R2_Grupo 5.docx                     # Revisión de la entrega 2
-│       │   └── Versiones antiguas/                 # Borrador previo a la reconstrucción
+│       │   └── R2_Grupo 5.docx                     # Revisión de la entrega 2
 │       ├── Entrega_3/
-│       │   ├── TFM_Entrega3.docx                    # Versión entregada — Entrega 3
-│       │   ├── R3 G5.docx                           # Revisión de la entrega 3
-│       │   └── Versiones antiguas/                  # Versiones intermedias v01 – v16
-│       └── Predeposito/
-│           └── TFM_Predeposito.docx                 # Versión de predepósito (entregable final)
+│       │   ├── TFM_Entrega3.docx                   # Versión entregada — Entrega 3
+│       │   └── R3 G5.docx                          # Revisión de la entrega 3
+│       ├── Predeposito_Correcciones/               # Predepósito + feedback de la directora (R3 G5)
+│       │   ├── TFM_Predeposito.docx
+│       │   ├── TFM_Predeposito (1).pdf
+│       │   └── G5 Revisión predeposito.docx
+│       └── Deposito/
+│           └── TFM_Deposito.docx                   # Versión final depositada
 │
-├── Bibliografía/
-│   ├── Estado del Arte/
-│   └── Libros y Referencias/
-│
-├── Codigo/
-│   └── TFE.ipynb                # Notebook exploratorio original (referencia histórica)
+├── Administrativo/               # Documentos institucionales (no forman parte del TFM)
+│   ├── instrucciones.pdf         # Instrucciones UNIR (ignorado por git, no redistribuible)
+│   ├── rubrica.pdf               # Rúbrica de evaluación (ignorado por git, no redistribuible)
+│   ├── Plantilla Grupal.docx     # Plantilla UNIR base para las entregas
+│   └── Revisión grupo 5 ESIT.docx
 │
 └── data/
     └── raw/                     # M4 dataset (se descarga automáticamente)
 ```
 
-Solo se conservan visibles las versiones finales de cada entrega; los borradores intermedios quedan archivados en las subcarpetas `Versiones antiguas/` de cada una, sin perderse.
+Cada entrega conserva únicamente su versión final entregada y, si aplica, la revisión del tribunal; los borradores intermedios (`Versiones antiguas/`) se descartaron tras la aprobación de cada hito, quedando disponibles en el historial de git si se necesitan.
 
 ---
 
@@ -130,6 +131,14 @@ El script genera automáticamente `results/tables/resultados_bootstrap_ci.csv` c
 python tests/test_evaluation.py
 python tests/test_backtesting.py
 ```
+
+### 4. (Opcional) Medir el coste computacional homogéneo de los siete modelos
+
+```bash
+python benchmark_timing.py
+```
+
+Genera `results/tables/resultados_timing.csv` y `results/tables/entorno_hardware.csv` (Tabla 29 de la memoria).
 
 ---
 

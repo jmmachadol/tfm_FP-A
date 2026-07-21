@@ -46,8 +46,8 @@ Thumbs.db
 *~
 
 # ─── Documentos institucionales (no redistribuibles) ─────────────────────────
-instrucciones.pdf
-rubrica.pdf
+Administrativo/instrucciones.pdf
+Administrativo/rubrica.pdf
 
 # ─── Modelos y checkpoints PyTorch ───────────────────────────────────────────
 *.pt
