@@ -1,0 +1,2 @@
+sistema_operativo,procesador,cpu_fisicos,cpu_logicos,ram_total_gb,python_version,aceleracion_gpu
+Windows 11,13th Gen Intel(R) Core(TM) i7-1355U,10,12,31.7,3.13.7,No (CPU únicamente)

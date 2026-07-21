@@ -150,8 +150,18 @@ def plot_stability(
     metric: str = "sMAPE",
     models: Optional[List[str]] = None,
     filename: str = "fig04_estabilidad_temporal.png",
+    title: Optional[str] = None,
 ) -> Path:
-    """Evolución del sMAPE promedio por fold walk-forward (solo modelos locales)."""
+    """Evolución del sMAPE promedio por fold walk-forward (solo modelos locales).
+
+    Para que la comparación entre posiciones de fold sea válida, ``results_df``
+    debe contener, para cada modelo, el mismo conjunto de series en todas las
+    posiciones de fold (ver ``run_experiment.py``, donde se filtra a las series
+    con historial completo antes de llamar a esta función). De lo contrario, la
+    media de cada posición se calcula sobre subconjuntos de series distintos y
+    la tendencia observada no es atribuible únicamente al efecto de la ventana
+    de entrenamiento creciente.
+    """
     if models is None:
         models = results_df["model"].unique().tolist()
 
@@ -169,7 +179,7 @@ def plot_stability(
 
     ax.set_xlabel("Fold walk-forward")
     ax.set_ylabel(metric)
-    ax.set_title(f"Estabilidad temporal — {metric} por fold", fontweight="bold")
+    ax.set_title(title or f"Estabilidad temporal — {metric} por fold", fontweight="bold")
     ax.legend(fontsize=8, ncol=2)
     fig.tight_layout()
     return _save(fig, filename)

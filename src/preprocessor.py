@@ -121,9 +121,28 @@ def extract_series_list(data_df: pd.DataFrame) -> List[np.ndarray]:
     return series
 
 
-def get_volume_deciles(series_list: List[np.ndarray]) -> np.ndarray:
-    """Asigna un decil de volumen (0-9) a cada serie según su media absoluta."""
-    means = np.array([np.mean(np.abs(s)) for s in series_list])
+def get_volume_deciles(
+    series_list: List[np.ndarray], initial_train: int | None = None
+) -> np.ndarray:
+    """Asigna un decil de volumen (0-9) a cada serie según su media absoluta.
+
+    Si ``initial_train`` se especifica, la media se calcula únicamente sobre
+    los primeros ``initial_train`` meses de cada serie (la ventana de
+    entrenamiento del primer fold walk-forward), de modo que la clasificación
+    por decil no utiliza información de ningún periodo de evaluación de
+    ningún fold. Si es ``None``, se usa la serie completa (comportamiento
+    histórico, no recomendado para análisis interpretativo por decil).
+
+    Args:
+        series_list: Lista de series temporales.
+        initial_train: Longitud de la ventana inicial de entrenamiento. Si se
+            especifica, series más cortas que este valor se clasifican con
+            todas las observaciones disponibles.
+    """
+    if initial_train is not None:
+        means = np.array([np.mean(np.abs(s[:initial_train])) for s in series_list])
+    else:
+        means = np.array([np.mean(np.abs(s)) for s in series_list])
     deciles = pd.qcut(means, q=10, labels=False, duplicates="drop")
     # pd.qcut puede retornar Categorical, Series o ndarray según versión
     if hasattr(deciles, "to_numpy"):

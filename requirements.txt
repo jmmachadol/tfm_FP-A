@@ -17,3 +17,6 @@ scikit-learn==1.7.1
 
 # Deep learning (CPU). N-BEATS y MLP se implementan en PyTorch puro (sin Darts).
 torch==2.11.0
+
+# Benchmark de coste computacional (benchmark_timing.py)
+psutil==7.2.2

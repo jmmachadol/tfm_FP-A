@@ -160,17 +160,21 @@ def main():
     info_filt, data_filt, lengths_filt = filter_by_min_length(info_df, data_df, cfg)
     info_sub, data_sub = stratified_subsample(info_filt, data_filt, lengths_filt, cfg, seed=SEED)
     series_list = extract_series_list(data_sub)
-    volume_deciles = get_volume_deciles(series_list)
+    # Los deciles de volumen se calculan sobre la ventana inicial de
+    # entrenamiento (primeros cfg.initial_train meses), no sobre la serie
+    # completa: así la clasificación por decil no incorpora información de
+    # ningún periodo de evaluación de ningún fold walk-forward.
+    volume_deciles = get_volume_deciles(series_list, initial_train=cfg.initial_train)
 
     logger.info("Series: %d | Walk-forward: initial=%d, horizon=%d, step=%d",
                 len(series_list), cfg.initial_train, cfg.horizon, cfg.step)
 
-    # Verificar leakage
-    import random
-    random.seed(SEED)
-    for i in random.sample(range(len(series_list)), min(10, len(series_list))):
+    # Verificar leakage sobre la totalidad de la submuestra. El coste es marginal
+    # (aritmética de índices, sin ajuste de modelos), por lo que no se justifica
+    # limitar la comprobación a un subconjunto aleatorio.
+    for i in range(len(series_list)):
         verify_no_leakage(generate_folds(len(series_list[i]), cfg), len(series_list[i]))
-    logger.info("Verificación leakage: OK")
+    logger.info("Verificación leakage: OK (%d/%d series)", len(series_list), len(series_list))
 
     local_models, global_models = load_models(args)
 
@@ -285,17 +289,84 @@ def main():
     df_bootstrap.to_csv(TABLES_DIR / "resultados_bootstrap_ci.csv", index=False)
     logger.info("Bootstrap CI exportado a: %s", TABLES_DIR / "resultados_bootstrap_ci.csv")
 
+    # Comparaciones pareadas adicionales entre modelos (no solo frente al
+    # baseline) con corrección de Bonferroni. El IC al 95 % demuestra
+    # significación con alpha=0.05, pero no con el alpha ajustado; se
+    # recalculan los mismos pares al nivel de confianza correspondiente
+    # (1 - alpha_ajustado) para que la afirmación de significación tras
+    # Bonferroni quede respaldada por evidencia, no solo por el IC al 95 %.
+    logger.info("Calculando comparaciones pareadas con corrección de Bonferroni...")
+    PAIRWISE_COMPARISONS = [
+        ("ETS", "SARIMA"), ("ETS", "HoltWinters"), ("ETS", "LightGBM"), ("SARIMA", "HoltWinters"),
+    ]
+    n_total_comparisons = len(present) - 1 + len(PAIRWISE_COMPARISONS)  # 6 vs baseline + 4 adicionales
+    alpha_bonferroni = 0.05 / n_total_comparisons
+
+    bonferroni_rows = []
+    for model in present:
+        if model == "SNaive":
+            continue
+        model_means = _series_smape_means(df_all, model)
+        common_idx = snv_means.index.intersection(model_means.index)
+        if len(common_idx) < 2:
+            continue
+        ci_adj = bootstrap_smape_diff_ci(
+            model_means[common_idx].values, snv_means[common_idx].values,
+            B=1000, alpha=alpha_bonferroni, seed=SEED,
+        )
+        bonferroni_rows.append({
+            "comparacion": f"{model} vs SNaive", "diff_mean": ci_adj["diff_mean"],
+            "ci_ajustado_lower": ci_adj["ci_lower"], "ci_ajustado_upper": ci_adj["ci_upper"],
+            "significativo_bonferroni": ci_adj["significant"], "n_series": ci_adj["n_series"],
+        })
+    for model_a, model_b in PAIRWISE_COMPARISONS:
+        means_a = _series_smape_means(df_all, model_a)
+        means_b = _series_smape_means(df_all, model_b)
+        common_idx = means_a.index.intersection(means_b.index)
+        if len(common_idx) < 2:
+            continue
+        ci_adj = bootstrap_smape_diff_ci(
+            means_a[common_idx].values, means_b[common_idx].values,
+            B=1000, alpha=alpha_bonferroni, seed=SEED,
+        )
+        bonferroni_rows.append({
+            "comparacion": f"{model_a} vs {model_b}", "diff_mean": ci_adj["diff_mean"],
+            "ci_ajustado_lower": ci_adj["ci_lower"], "ci_ajustado_upper": ci_adj["ci_upper"],
+            "significativo_bonferroni": ci_adj["significant"], "n_series": ci_adj["n_series"],
+        })
+
+    df_bonferroni = pd.DataFrame(bonferroni_rows)
+    df_bonferroni.to_csv(TABLES_DIR / "resultados_bonferroni.csv", index=False)
+    logger.info(
+        "Bonferroni (%d comparaciones, alpha_ajustado=%.4f) exportado a: %s",
+        n_total_comparisons, alpha_bonferroni, TABLES_DIR / "resultados_bonferroni.csv",
+    )
+
     # CV temporal por modelo: CV del sMAPE entre los folds de cada serie,
     # promediado sobre la submuestra. Complementa al CV-sMAPE global
     # (sigma/mu sobre el conjunto agregado folds x series) de la tabla resumen.
-    def _cv_temporal(df: pd.DataFrame, model: str) -> float:
+    # Las series con un único fold retenido no permiten estimar variabilidad
+    # temporal (desviación estándar indefinida con n=1) y se excluyen del
+    # cálculo; se reporta explícitamente cuántas series entran en cada
+    # estadístico, junto con la mediana y el rango intercuartílico (más
+    # robustos que la media ante series con sMAPE medio próximo a cero).
+    def _cv_temporal_stats(df: pd.DataFrame, model: str) -> dict:
         sub = df[df["model"] == model].dropna(subset=["sMAPE"])
         per_series = sub.groupby("series_idx")["sMAPE"].agg(
             lambda g: g.std() / g.mean() * 100 if len(g) > 1 and g.mean() > 0 else np.nan
         )
-        return float(per_series.dropna().mean())
+        valid = per_series.dropna()
+        return {
+            "cv_temporal_pct": float(valid.mean()),
+            "cv_temporal_mediana_pct": float(valid.median()),
+            "cv_temporal_p25_pct": float(valid.quantile(0.25)),
+            "cv_temporal_p75_pct": float(valid.quantile(0.75)),
+            "pct_series_cv_mayor_25": float((valid > 25.0).mean() * 100),
+            "n_series_validas": int(valid.shape[0]),
+            "n_series_excluidas_1_fold": int(per_series.isna().sum()),
+        }
 
-    cv_rows = [{"model": m, "cv_temporal_pct": _cv_temporal(df_all, m)} for m in present]
+    cv_rows = [{"model": m, **_cv_temporal_stats(df_all, m)} for m in present]
     df_cv = pd.DataFrame(cv_rows)
     df_cv.to_csv(TABLES_DIR / "resultados_cv_temporal.csv", index=False)
     logger.info("CV temporal exportado a: %s", TABLES_DIR / "resultados_cv_temporal.csv")
@@ -324,7 +395,26 @@ def main():
 
         df_local = df_all[df_all["model"].isin(local_models.keys())]
         if "fold_id" in df_local.columns:
-            plot_stability(df_local, metric="sMAPE", filename="fig04_estabilidad_temporal.png")
+            # La comparación entre posiciones de fold solo es válida si cada
+            # posición promedia el mismo conjunto de series. Se restringe la
+            # figura a las series que retienen los 5 folds completos en TODOS
+            # los modelos locales, de modo que la composición de la muestra
+            # es idéntica en fold_id=0..4 y la tendencia observada es atribuible
+            # al efecto de la ventana de entrenamiento creciente, no a un cambio
+            # en qué series contribuyen a cada punto.
+            n_folds_by_series = (
+                df_local.groupby(["model", "series_idx"])["fold_id"].nunique().unstack("model")
+            )
+            complete_series = n_folds_by_series[(n_folds_by_series == max_folds).all(axis=1)].index
+            df_local_complete = df_local[df_local["series_idx"].isin(complete_series)]
+            logger.info(
+                "Figura de estabilidad: %d/%d series con %d folds completos en los 4 modelos locales",
+                len(complete_series), df_local["series_idx"].nunique(), max_folds,
+            )
+            plot_stability(
+                df_local_complete, metric="sMAPE", filename="fig04_estabilidad_temporal.png",
+                title=f"Estabilidad temporal — sMAPE por fold (series con historial completo, n={len(complete_series)})",
+            )
 
         dec_rows = []
         for model in present:
@@ -337,6 +427,16 @@ def main():
         total_err = dec_df.groupby("model")["abs_error"].transform("sum")
         dec_df["contribution"] = dec_df["abs_error"] / total_err * 100
         plot_decile_contribution(dec_df, filename="fig05_contribucion_deciles.png")
+
+        # WAPE medio por modelo y decil de volumen. Los deciles se calculan
+        # sobre la ventana inicial de entrenamiento (ver get_volume_deciles),
+        # por lo que esta tabla no incorpora información de los periodos de
+        # evaluación de ningún fold.
+        wape_decile = df_all.groupby(["decile", "model"])["WAPE"].mean().unstack("model")
+        wape_decile = wape_decile[[m for m in present if m in wape_decile.columns]]
+        wape_decile.index = [f"D{int(d) + 1}" for d in wape_decile.index]
+        wape_decile.to_csv(TABLES_DIR / "resultados_wape_decil.csv")
+        logger.info("WAPE por decil exportado a: %s", TABLES_DIR / "resultados_wape_decil.csv")
 
         logger.info("Figuras generadas en: %s", FIGURES_DIR)
     except Exception as e:
